@@ -16,10 +16,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hello-window.cpp">
       <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
