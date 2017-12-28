@@ -20,11 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
-    <ClCompile Include="shader.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shader.fs" />
-    <None Include="shader.vs" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
