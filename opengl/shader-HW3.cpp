@@ -16,7 +16,7 @@ const char *vertexShaderSource = "#version 330 core\n"
 "out vec3 ourColor;\n"
 "void main() {\n"
 "   gl_Position = vec4(aPos, 1.0);\n"
-"   ourColor = aColor;\n"
+"   ourColor = aPos;\n"
 "}\0";
 
 const char *fragmentShaderSource = "#version 330 core\n"
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 

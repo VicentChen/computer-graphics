@@ -13,9 +13,10 @@ const int SCR_HEIGHT = 600;
 const char *vertexShaderSource = "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
 "layout(location = 1) in vec3 aColor;\n"
+"uniform float offset;\n"
 "out vec3 ourColor;\n"
 "void main() {\n"
-"   gl_Position = vec4(aPos, 1.0);\n"
+"   gl_Position = vec4(aPos.x + offset, aPos.y, aPos.z, 1.0);\n"
 "   ourColor = aColor;\n"
 "}\0";
 
@@ -86,13 +87,16 @@ int main(int argc, char* argv[]) {
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
 
+        int offsetLocation = glGetUniformLocation(shaderProgram, "offset");
+        glUniform1f(offsetLocation, 0.3f);
+
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
