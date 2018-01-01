@@ -18,7 +18,10 @@
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="texture-HW4.cpp">
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="transformation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
