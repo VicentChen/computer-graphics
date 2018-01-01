@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="camera-HW2.cpp" />
     <ClCompile Include="glad.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
