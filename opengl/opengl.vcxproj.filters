@@ -18,7 +18,7 @@
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="coordinate.cpp">
+    <ClCompile Include="coordinate-HW1,2,3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
