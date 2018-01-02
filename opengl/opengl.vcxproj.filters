@@ -18,7 +18,7 @@
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="camera-HW2.cpp">
+    <ClCompile Include="color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
