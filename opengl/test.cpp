@@ -7,20 +7,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <learnopengl/shader_s.h>
-
+#include <learnopengl/shader_m.h>
+#include <learnopengl/camera.h>
 #include <iostream>
+
+using namespace glm;
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void process_input(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+void process_input(GLFWwindow *window) {
+	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
+	glViewport(0, 0, width, height);
 }
 
 int main(int argc, char* argv[]) {
@@ -35,51 +39,89 @@ int main(int argc, char* argv[]) {
 
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-    Shader our_shader("transformation.vs", "transformation.fs");
+    glEnable(GL_DEPTH_TEST);
+
+    Shader our_shader("test.vs", "test.fs");
 
     float vertices[] = {
-        // positions          // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+    vec3 cubePositions[] = {
+        vec3(0.0f,  0.0f,  0.0f),
+        vec3(2.0f,  5.0f, -15.0f),
+        vec3(-1.5f, -2.2f, -2.5f),
+        vec3(-3.8f, -2.0f, -12.3f),
+        vec3(2.4f, -0.4f, -3.5f),
+        vec3(-1.7f,  3.0f, -7.5f),
+        vec3(1.3f, -2.0f, -2.5f),
+        vec3(1.5f,  2.0f, -2.5f),
+        vec3(1.5f,  0.2f, -1.5f),
+        vec3(-1.3f,  1.0f, -1.5f)
+    };
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
     glBindVertexArray(0);
 
-    unsigned int texture1, texture2;
-    unsigned char* data;
     int width, height, nrChannels;
-
+    unsigned char *data;
+    unsigned int texture1, texture2;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     data = stbi_load("pic/container.jpg", &width, &height, &nrChannels, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -105,32 +147,38 @@ int main(int argc, char* argv[]) {
         process_input(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
-        glm::mat4 transform;
-        transform = glm::translate(transform, glm::vec3((0.5, -0.5, 0)));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-
         our_shader.use();
-        unsigned int transformLoc = glGetUniformLocation(our_shader.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+        mat4 project = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        mat4 view = camera.GetViewMatrix();
+        our_shader.setMat4("project", project);
+        our_shader.setMat4("view", view);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        for (int i = 0; i < 10; i++) {
+            mat4 model;
+            model = translate(model, cubePositions[i]);
+            float angle = 10.0f * i;
+            model = rotate(model, radians(angle), vec3(1.0f, 0.3f, 0.5f));
+            our_shader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
