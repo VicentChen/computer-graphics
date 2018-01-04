@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="basic-lighting.cpp" />
+    <ClCompile Include="basic-lighting-HW4.cpp" />
     <ClCompile Include="glad.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
