@@ -1,7 +1,7 @@
 # CMU-15462-Assigment_0.0
  - Origin Andrew ID: ab1
  - Date: August 30, 2017
-
+ - **Correctness not guaranteed**
 # 1 Linear Algebra
 ## 1.1 Basic Vector Operations
 **Exercise 1**
@@ -200,3 +200,47 @@ $$
 $$
 u\cdot e_1e_1+u\cdot e_2e_2=(20,13)
 $$
+
+**Exercise 14**
+$$
+\begin{align}
+(a)&\widetilde e_1=e_1/|e_1|=(\frac{1}{\sqrt5},\frac{2}{\sqrt5})\\
+(b)&\hat e_2=e_2-\langle e_2,\widetilde e_1\rangle\widetilde e_1=(9,7)-(\frac{23}{5},\frac{46}{5})=(\frac{22}{5},-\frac{11}{5})\\
+(c)&\widetilde e_2=\hat e_2/|\hat e_2|=\frac{11}{\sqrt5}(\frac{22}{5},-\frac{11}{5})=(\frac{2}{\sqrt5},-\frac{1}{\sqrt5})\\
+(d)&|\widetilde e_1|^2=1\\
+(e)&|\widetilde e_2|^2=1\\
+(f)&\langle\widetilde e_1,\widetilde e_2\rangle=(\frac{1}{\sqrt5},\frac{2}{\sqrt5})\cdot (\frac{2}{\sqrt5},-\frac{1}{\sqrt5})=0
+\end{align}
+$$
+
+**Exercise 15**
+$$
+\begin{align}
+(a)&\begin{vmatrix}9 &7\\18 &14\end{vmatrix}=9*14-7*18=0\\
+(b)&\langle e_1, w\rangle=9*2+7*4=46\\
+(c)&\langle e_2, w\rangle=18*2+14*4=92\\
+(d)&ae_1+be_2=(2070,1610)
+\end{align}
+$$
+
+## 1.5 Systems of Linear Equations
+**Exercise 16**
+$$
+\begin{align}
+&\begin{vmatrix}
+3 &5 &9\\
+-5 &3 &6
+\end{vmatrix}\\
+=&\begin{vmatrix}
+15 &25 &45\\
+-15 &9 &18
+\end{vmatrix}\\
+=&\begin{vmatrix}
+3 &5 &9\\
+0 &34 &53
+\end{vmatrix}
+\end{align}
+$$
+
+**Exercise 17**
+$$x+z=\frac{1}{4}, y=-\frac{1}{4}$$
