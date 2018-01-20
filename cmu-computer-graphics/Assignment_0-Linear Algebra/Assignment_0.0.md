@@ -2,54 +2,6 @@
  - Origin Andrew ID: ab1
  - Date: August 30, 2017
  - **Correctness not guaranteed**
-# 1 Linear Algebra
-## 1.1 Basic Vector Operations
-**Exercise 1**
-$$
-\begin{align}
-(a)&u+v=(8,4)+(5,5)=(13,9)\\
-(b)&bu=8*(8,4)=(64,32)\\
-(c)&au-bv=4*(8,4)-8*(5,5)=(-8,-24)
-\end{align}
-$$
-**Exercise 2**
-$$
-\begin{align}
-(a)&u-v=(8,3,8)-(7,4,7)=(1,-1,1)\\
-(b)&u+7v=(8,3,8)-7*(7,4,7)=(-41,-25,-41)
-\end{align}
-$$
-**Exercise 3**
-$$
-\begin{align}
-(a)&p(x)-q(x)=8x^2+3x+8-(7x^2+4x+7)=x^2-x+1\\
-(b)&p(x)+7q(x)=8x^2+3x+8+7*(7x^2+4x+7)=57x^2+31x+57
-\end{align}
-$$
-
-## 1.2 Inner Products and Norms
-**Exercise 4**
-$$u\cdot v=(8,2,8)\cdot(6,3,4)=8*6+2*3+8*4=48+6+32=86$$
-**Exercise 5**
-$$|u|=\sqrt{u\cdot u}=\sqrt{3^2+7^2+5^2}=\sqrt{83}$$
-**Exercise 6**
-$$
-\begin{align}
-(a)&<x,x>=5*1*1+1*0+0*1+5*0*0=5\\
-(b)&<y,y>=5*0*0+0*1+1*0+5*1*1=5\\
-(c)&<u,v>-<v,u>=5*2*7+2*3+3*7+5*3*3-(5*7*2+7*3+2*3+5*3*3)=0\\
-(d)&<6u+v,w>-(6<u,w>+<v,w>)\\
-&=<(18,41),(2,6)>-(6<(2,6),(2,6)>+<(6,5),(2,6)>)
-&=5*18*2+18*6+41*2+5*41*6-(6*(5*2*2+2*6+6*2+5*6*6)+(5*6*2+6*6+5*2+5*5*6))
-&=1600-1600\\
-&=0
-\end{align}
-$$
-# CMU-15462-Assigment_0.0
-
-标签（空格分隔）： 图形学
-
----
 
 # 1 Linear Algebra
 ## 1.1 Basic Vector Operations
@@ -244,3 +196,64 @@ $$
 
 **Exercise 17**
 $$x+z=\frac{1}{4}, y=-\frac{1}{4}$$
+
+## 1.6 Bilinear and Quadratic Forms
+**Exercise 18**
+$$
+\begin{align}
+(a)&\langle ax+by,z\rangle=(109,41)\cdot(8,4)=1036\\
+(b)&a\langle x,z\rangle+b\langle y,z\rangle=5*92+8*72=1036\\
+(c)&|ax|^2=45^2+25^2\\
+(d)&a^2|x|^2=25*(81+25)
+\end{align}
+$$
+
+**Exercise 19**
+$$
+\begin{align}
+B(x,y)&=\frac{1}{2}(Q(x+y)-Q(x)-Q(y))\\
+&=\frac{1}{2}(4(x_1+y_1)^2+3(x_1+y_1)(x_2+y_2)+6(x_2+y_2)^2-(4x_1^2+3x_1x_2+6x_2^2)-(4y_1^2+3y_1y_2+6y_2^2)\\
+&=8x_1y_1+3x_1y_2+3x_2y_1+12x_2y_2
+\end{align}
+$$
+
+**Exercise 20**
+pass
+
+## 1.7 Matrices and Vectors
+**Exercise 21**
+$$
+\begin{align}
+(a)&A=\begin{bmatrix}7 &3\\5 &3\end{bmatrix}\\
+(b)&Ax=\begin{bmatrix}7 &3\\5 &3\end{bmatrix}\begin{bmatrix}8\\5\end{bmatrix}=\begin{bmatrix}71\\55\end{bmatrix}
+\end{align}
+$$
+
+**Exercise 22**
+$$
+\begin{align}
+(a)&A=\begin{bmatrix}2 &0\\0 &7\\1 &1\end{bmatrix}\\
+(b)&B=\begin{bmatrix}0 &4 &0\\0 &0 &4\\4 &0 &0\end{bmatrix}\\
+(c)&BA=\begin{bmatrix}0 &4 &0\\0 &0 &4\\4 &0 &0\end{bmatrix}\begin{bmatrix}2 &0\\0 &7\\1 &1\end{bmatrix}=\begin{bmatrix}0 &28\\4 &4\\8 &0\end{bmatrix}
+\end{align}
+$$
+
+**Exercise 23**
+$$
+\begin{align}
+(a)&\begin{bmatrix}1 &0\\0 &1\end{bmatrix}\\
+(b)&\begin{bmatrix}8 &7\\-14 &24\end{bmatrix}\\
+(c)&\begin{bmatrix}8 &7\\-14 &24\end{bmatrix}^{-1}\\
+\end{align}
+$$
+
+**Exercise 24**
+$$
+\begin{align}
+(a)&A^T=\frac{1}{\sqrt{45}}\begin{bmatrix}6 &-3\\3 &6\end{bmatrix}\\
+(b)&A^TA=\frac{1}{45}\begin{bmatrix}6 &-3\\3 &6\end{bmatrix}\begin{bmatrix}6 &3\\-3 &6\end{bmatrix}=\frac{1}{45}\begin{bmatrix}45 &0\\0 &45\end{bmatrix}
+\end{align}
+$$
+
+**Exercise 25**
+pass
