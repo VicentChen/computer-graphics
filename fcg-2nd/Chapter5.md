@@ -1,6 +1,11 @@
 # Chapter 5
 
-1. `to do`
+1. $$
+\begin{align}
+&Target:(y_0-y_1)x+(x_0-x_1)y+x_0y_1-x_1y_0=0\\
+&\begin{bmatrix}y_0 &x_0\\-y_1 &-x_1\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix}+\begin{vmatrix}x_0&y_0\\x_1&y_1\end{vmatrix}=0
+\end{align}
+$$
 2. $A$的行标准正交
 $$
 \begin{align}
