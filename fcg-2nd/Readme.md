@@ -3,7 +3,7 @@ It is recommended to read it through [CmdMarkdown][1].
 **Correctness not guaranteed.**
 
 TODO list:
- - Chapter 2: 10 - 13
+ - ~~Chapter 2: 10 - 13~~
  - Chapter 5: 1
 
   [1]: https://www.zybuluo.com/
