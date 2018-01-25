@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Quiz 4</title>
+</head>
+<body>
+	<canvas id="myCanvas" width="600" height="600"></canvas>
+	<script type="text/javascript">
+		function drawSubTree( ctx, depth ) {
+			if( depth == 0 ) return;
+			// set the color to brown
+			if (depth <= 3)  ctx.fillStyle = "rgba(0, 255, 0, 1)";
+			else ctx.fillStyle = "rgba(120, 70, 0, 1)";
+			
+			// draw a rectangle for the current edge
+			ctx.beginPath();
+			ctx.rect(-10,-50,20,100);
+			ctx.fill();
+			
+			// your transformations here!
+			ctx.scale(0.8, 0.7);
+
+			var leftRotate = Math.PI / 7;
+			var rightRotate = Math.PI / 5;
+			ctx.translate(-Math.sin(leftRotate)*50, -Math.cos(leftRotate)*50-50);
+			ctx.rotate(-leftRotate);
+			drawSubTree( ctx, depth-1 );
+			ctx.rotate(leftRotate);
+			ctx.translate(Math.sin(leftRotate)*50, Math.cos(leftRotate)*50+50);
+
+			ctx.translate(Math.sin(rightRotate)*50, -Math.cos(rightRotate)*50-50);
+			ctx.rotate(rightRotate);
+			drawSubTree( ctx, depth-1 );
+			ctx.rotate(-rightRotate);
+			ctx.translate(-Math.sin(rightRotate)*50, Math.cos(rightRotate)*50+50);
+
+			ctx.scale(1/0.8, 1/0.7);
+			// your transformations here!
+			
+		}
+		var canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+		context.translate(300,300);
+		drawSubTree( context, 13 );
+	</script>
+</body>
+</html>
