@@ -4,7 +4,8 @@ It is recommended to read it through [CmdMarkdown][1].
 
 TODO list:
  - ~~Chapter 2: 10 - 13~~
- - Chapter 4: 3-5
+ - Chapter 4: 3 - 5
  - ~~Chapter 5: 1~~
+ - Chapter 7: 7 - 8
 
   [1]: https://www.zybuluo.com/
