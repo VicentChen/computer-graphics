@@ -244,6 +244,22 @@ void SoftwareRendererImp::rasterize_line( float x0, float y0,
 
   // Task 2: 
   // Implement line rasterization
+    int bx = (int)floor(x0), by = (int)floor(y0);
+    int ex = (int)floor(x1), ey = (int)floor(y1);
+    int dx = abs(bx - ex), sx = (bx < ex ? 1 : -1);
+    int dy = abs(by - ey), sy = (by < ey ? 1 : -1);
+    int err = (dx > dy ? dx : -dy)/2, e2;
+    while(true) {
+        render_target[4 * (bx + by * target_w)] = (uint8_t)(color.r * 255);
+        render_target[4 * (bx + by * target_w) + 1] = (uint8_t)(color.g * 255);
+        render_target[4 * (bx + by * target_w) + 2] = (uint8_t)(color.b * 255);
+        render_target[4 * (bx + by * target_w) + 3] = (uint8_t)(color.a * 255);
+        if (bx == ex && by == ey) break;
+        e2 = err;
+        if (e2 > -dx) { err -= dy; bx += sx; }
+        if (e2 < dy) { err += dx; by += sy; }
+    }
+    /* TODO: Apply Xiaolin Wu's line algorithm */
 }
 
 void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
