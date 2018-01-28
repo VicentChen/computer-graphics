@@ -268,7 +268,46 @@ void SoftwareRendererImp::rasterize_triangle( float x0, float y0,
                                               Color color ) {
   // Task 3: 
   // Implement triangle rasterization
+    /* TODO: check line */
+    /* (y0-y1)x+(x1-x0)y+x0y1-x1y0=0 */
 
+    /* make points counterclockwise */
+    float cck = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
+    int px[3], py[3];
+    px[0] = (int)floor(x0); py[0] = (int)floor(y0);
+    if (cck > 0) {
+        px[1] = (int)floor(x1); py[1] = (int)floor(y1);
+        px[2] = (int)floor(x2); py[2] = (int)floor(y2);
+    }
+    else {
+        px[1] = (int)floor(x2); py[1] = (int)floor(y2);
+        px[2] = (int)floor(x1); py[2] = (int)floor(y1);
+    }
+
+    int minx = px[0], miny = py[0];
+    int maxx = px[0], maxy = py[0];
+    if (minx > px[1]) minx = px[1]; if (miny > py[1]) miny = py[1];
+    if (minx > px[2]) minx = px[2]; if (miny > py[2]) miny = py[2];
+    if (maxx < px[1]) maxx = px[1]; if (maxy < py[1]) maxy = py[1];
+    if (maxx < px[2]) maxx = px[2]; if (maxy < py[2]) maxy = py[2];
+
+    for (int x = minx; x <= maxx; x++) {
+        for (int y = miny; y < maxy; y++) {
+            bool draw_pixel_flag = true;
+            /* TODO: consider double edges */
+            if ((py[0]-py[1])*x + (px[1]-px[0])*y + px[0] * py[1] - px[1] * py[0] < 0) draw_pixel_flag = false;
+            if ((py[1]-py[2])*x + (px[2]-px[1])*y + px[1] * py[2] - px[2] * py[1] < 0) draw_pixel_flag = false;
+            if ((py[2]-py[0])*x + (px[0]-px[2])*y + px[2] * py[0] - px[0] * py[2] < 0) draw_pixel_flag = false;
+            if (draw_pixel_flag == true) {
+                render_target[4 * (x + y * target_w)] = (uint8_t)(color.r * 255);
+                render_target[4 * (x + y * target_w) + 1] = (uint8_t)(color.g * 255);
+                render_target[4 * (x + y * target_w) + 2] = (uint8_t)(color.b * 255);
+                render_target[4 * (x + y * target_w) + 3] = (uint8_t)(color.a * 255);
+            }
+        }
+    }
+
+    
 }
 
 void SoftwareRendererImp::rasterize_image( float x0, float y0,
