@@ -12,6 +12,7 @@
 | 6 | 2018/1/31 | `texture.cpp`, `software_render.cpp`, [bilinear filtering][4] | optimize |
 | 7 | 2018/2/1  | `texture.cpp`, mipmap storage | |
 | 8 | 2018/2/1  | `software_render.cpp`, always fill sample first| |
+| 9 | 2018/2/1  | pass | pass |
 
 
   [1]: https://bitbucket.org/
