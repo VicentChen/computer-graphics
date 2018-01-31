@@ -9,6 +9,7 @@
 | 3 | 2018/1/29 | `software_render.cpp`, use screen coordinate | double edge |
 | 4 | 2018/1/30 | `software_render.cpp`, add member in `SoftwareRendererImp`, **be care of coordinates** | jitter sampling, optimize |
 | 5 | 2018/1/30 | `viewport.cpp`, matrix mutliplication | |
+| 6 | 2018/1/31 | `texture.cpp`, `software_render.cpp`, [bilinear filtering][4] | optimize |
 
 
   [1]: https://bitbucket.org/
