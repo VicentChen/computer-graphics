@@ -2,6 +2,7 @@
 
 **It will be pushed to [BitBucket][1](in a private repo).**
 
+# Assigment 1 - [DrawSVG][5]
 | Task | Finish Date | Notes | TODO |
 | ---- | ----------- | ----- | ---- |
 | 1 | 2018/1/29 | `hardware_render.cpp`: use `GL_POINTS` |  |
@@ -14,8 +15,12 @@
 | 8 | 2018/2/1  | `software_render.cpp`, always fill sample first| |
 | 9 | 2018/2/1  |||
 
+# Assigment 2 - [MeshEdit][6]
+
 
   [1]: https://bitbucket.org/
   [2]: https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C
   [3]: https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
   [4]: https://en.wikipedia.org/wiki/Bilinear_filtering
+  [5]: https://github.com/cmu462/DrawSVG
+  [6]: https://github.com/cmu462/Scotty3D
