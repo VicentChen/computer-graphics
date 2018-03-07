@@ -5,6 +5,12 @@
 #include <stb_image.h>
 #include <learnopengl/shader_s.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+using namespace glm;
+
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 float alpha = 0.2f;
@@ -40,6 +46,7 @@ int main(int argc, char *argv[]) {
   };
 
   unsigned int VAO, VBO, EBO;
+
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &EBO);
@@ -52,10 +59,12 @@ int main(int argc, char *argv[]) {
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
+
+  glBindVertexArray(0);
 
   // textures
   stbi_set_flip_vertically_on_load(true);
@@ -63,6 +72,7 @@ int main(int argc, char *argv[]) {
   int width, height, channels;
   unsigned char *data;
   unsigned int texture_1, texture_2;
+
   glGenTextures(1, &texture_1);
   glBindTexture(GL_TEXTURE_2D, texture_1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -91,7 +101,7 @@ int main(int argc, char *argv[]) {
   shader.setInt("texture_1", 0);
   shader.setInt("texture_2", 1);
 
-  while(!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window)) {
     process_input(window);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -102,8 +112,16 @@ int main(int argc, char *argv[]) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture_2);
 
+    int transform_location = glGetUniformLocation(shader.ID, "transform");
+    mat4 transform;
+    transform = translate(transform, vec3(0.5f, -0.5f, 0.0f));
+    transform = scale(transform, vec3(0.5f, 0.5f, 0.5f));
+    transform = rotate(transform, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
+    glUniformMatrix4fv(transform_location, 1, GL_FALSE, value_ptr(transform));
+
     shader.use();
     shader.setFloat("alpha", alpha);
+    glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glfwSwapBuffers(window);
@@ -118,9 +136,9 @@ void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GLFW_TRUE);
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    if (alpha < 1.0f) alpha += 1E-3f;
+    alpha += 1E-3f;
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    if (alpha > 0.0f) alpha -= 1E-3f;
+    alpha -= 1E-3f;
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
