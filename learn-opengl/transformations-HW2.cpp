@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // shaders
-  Shader shader("transformations-HW2.vs", "transformations-HW2.fs");
+  Shader shader("transformations.vs", "transformations.fs");
 
   // vertices
   float vertices[] = {
@@ -115,19 +115,11 @@ int main(int argc, char* argv[]) {
 
     // transformations
     mat4 trans;
-    trans = translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
     trans = scale(trans, vec3(0.5f, 0.5f, 0.5f));
     trans = rotate(trans, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
     glUniformMatrix4fv(trans_location, 1, GL_FALSE, value_ptr(trans));
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-    trans = mat4();
-    trans = translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
-    trans = scale(trans, vec3(0.5f, 0.5f, 0.5f));
-    trans = rotate(trans, (float)glfwGetTime(), vec3(0.0f, 0.0f, 1.0f));
-    glUniformMatrix4fv(trans_location, 1, GL_FALSE, value_ptr(trans));
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
