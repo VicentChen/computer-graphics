@@ -49,47 +49,47 @@ int main(int argc, char const *argv[]) {
 
   // vertices
   float vertices[] = {
-    -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-    -0.5f, -0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f,  0.5f,
-    0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-    -0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f, -0.5f,
-    0.5f,  0.5f,  0.5f,
-    0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
   };
 
   unsigned lamp_VAO, cube_VAO, VBO;
@@ -102,13 +102,15 @@ int main(int argc, char const *argv[]) {
 
   glBindVertexArray(lamp_VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
   glBindVertexArray(cube_VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
 
   // draw
   mat4 model, view, projection;
@@ -145,6 +147,8 @@ int main(int argc, char const *argv[]) {
     cube_shader.use();
     cube_shader.setVec3("lamp_color", 1.0f, 0.5f, 0.31f);
     cube_shader.setVec3("cube_color", 1.0f, 1.0f, 1.0f);
+    cube_shader.setVec3("light_pos", light_pos);
+    cube_shader.setVec3("view_pos", camera.Position);
     cube_shader.setMat4("model", model);
     cube_shader.setMat4("view", view);
     cube_shader.setMat4("projection", projection);
