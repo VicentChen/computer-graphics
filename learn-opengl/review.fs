@@ -1,11 +1,10 @@
 #version 330 core
-in vec2 tex_coord;
 
 out vec4 fragment_color;
 
-uniform sampler2D texture_1;
-uniform sampler2D texture_2;
+uniform vec3 lamp_color;
+uniform vec3 cube_color;
 
 void main() {
-  fragment_color = mix(texture(texture_1, tex_coord), texture(texture_2, tex_coord), 0.2f);
+  fragment_color = vec4(lamp_color * cube_color, 1.0f);
 }
