@@ -124,12 +124,14 @@ int main(int argc, char const *argv[]) {
   glEnableVertexAttribArray(2);
 
   // textures
-  unsigned int diffuse_map = load_texture("pic/matrix.jpg");
-  unsigned int specular_map = load_texture("pic/matrix.jpg");
+  unsigned int diffuse_map = load_texture("pic/container2.png");
+  unsigned int specular_map = load_texture("pic/container2_specular.png");
+  unsigned int emission_map = load_texture("pic/matrix.jpg");
 
   cube_shader.use();
   cube_shader.setInt("material.diffuse", 0);
   cube_shader.setInt("material.specular", 1);
+  cube_shader.setInt("material.emission", 2);
 
   // draw
   mat4 model, view, projection;
@@ -180,6 +182,8 @@ int main(int argc, char const *argv[]) {
     glBindTexture(GL_TEXTURE_2D, diffuse_map);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, specular_map);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, emission_map);
     glBindVertexArray(cube_VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
