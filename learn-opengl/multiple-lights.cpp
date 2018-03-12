@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Colors", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Multiple lights", NULL, NULL);
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -115,6 +115,13 @@ int main(int argc, char* argv[]) {
     vec3(-1.3f,  1.0f, -1.5f)
   };
 
+  vec3 point_light_positions[] = {
+    vec3(0.7f,  0.2f,  2.0f),
+    vec3(2.3f, -3.3f, -4.0f),
+    vec3(-4.0f,  2.0f, -12.0f),
+    vec3(0.0f,  0.0f, -3.0f)
+  };
+
   unsigned lamp_VAO, cube_VAO, VBO;
   glGenVertexArrays(1, &lamp_VAO);
   glGenVertexArrays(1, &cube_VAO);
@@ -158,21 +165,74 @@ int main(int argc, char* argv[]) {
     mat4 model, view, projection;
 
     // draw lamp
-    model = mat4();
-    model = translate(model, vec3(1.2f, 1.0f, 2.0f));
-    model = scale(model, vec3(0.2f));
-    view = camera.GetViewMatrix();
-    projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    for (int i = 0; i < 4; i++) {
+      model = mat4();
+      model = translate(model, point_light_positions[i]);
+      model = scale(model, vec3(0.2f));
+      view = camera.GetViewMatrix();
+      projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-    lamp_shader.use();
-    lamp_shader.setMat4("model", model);
-    lamp_shader.setMat4("view", view);
-    lamp_shader.setMat4("projection", projection);
+      lamp_shader.use();
+      lamp_shader.setMat4("model", model);
+      lamp_shader.setMat4("view", view);
+      lamp_shader.setMat4("projection", projection);
 
-    glBindVertexArray(lamp_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+      glBindVertexArray(lamp_VAO);
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 
     // draw cube
+    cube_shader.use();
+    cube_shader.setVec3("view_pos", camera.Position);
+    cube_shader.setFloat("material.shininess", 32.0f);
+    // directional light
+    cube_shader.setVec3("dir_light.direction", -0.2f, -1.0f, -0.3f);
+    cube_shader.setVec3("dir_light.ambient", 0.05f, 0.05f, 0.05f);
+    cube_shader.setVec3("dir_light.diffuse", 0.4f, 0.4f, 0.4f);
+    cube_shader.setVec3("dir_light.specular", 0.5f, 0.5f, 0.5f);
+    // point light 1
+    cube_shader.setVec3( "point_light[0].position", point_light_positions[0]);
+    cube_shader.setVec3( "point_light[0].ambient", 0.05f, 0.05f, 0.05f);
+    cube_shader.setVec3( "point_light[0].diffuse", 0.8f, 0.8f, 0.8f);
+    cube_shader.setVec3( "point_light[0].specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.setFloat("point_light[0].constant", 1.0f);
+    cube_shader.setFloat("point_light[0].linear", 0.09);
+    cube_shader.setFloat("point_light[0].quadratic", 0.032);
+    // point light 2
+    cube_shader.setVec3( "point_light[1].position", point_light_positions[1]);
+    cube_shader.setVec3( "point_light[1].ambient", 0.05f, 0.05f, 0.05f);
+    cube_shader.setVec3( "point_light[1].diffuse", 0.8f, 0.8f, 0.8f);
+    cube_shader.setVec3( "point_light[1].specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.setFloat("point_light[1].constant", 1.0f);
+    cube_shader.setFloat("point_light[1].linear", 0.09);
+    cube_shader.setFloat("point_light[1].quadratic", 0.032);
+    // point light 3
+    cube_shader.setVec3( "point_light[2].position", point_light_positions[2]);
+    cube_shader.setVec3( "point_light[2].ambient", 0.05f, 0.05f, 0.05f);
+    cube_shader.setVec3( "point_light[2].diffuse", 0.8f, 0.8f, 0.8f);
+    cube_shader.setVec3( "point_light[2].specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.setFloat("point_light[2].constant", 1.0f);
+    cube_shader.setFloat("point_light[2].linear", 0.09);
+    cube_shader.setFloat("point_light[2].quadratic", 0.032);
+    // point light 4
+    cube_shader.setVec3( "point_light[3].position", point_light_positions[3]);
+    cube_shader.setVec3( "point_light[3].ambient", 0.05f, 0.05f, 0.05f);
+    cube_shader.setVec3( "point_light[3].diffuse", 0.8f, 0.8f, 0.8f);
+    cube_shader.setVec3( "point_light[3].specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.setFloat("point_light[3].constant", 1.0f);
+    cube_shader.setFloat("point_light[3].linear", 0.09);
+    cube_shader.setFloat("point_light[3].quadratic", 0.032);
+    // spotLight
+    cube_shader.setVec3( "spot_light.position", camera.Position);
+    cube_shader.setVec3( "spot_light.direction", camera.Front);
+    cube_shader.setVec3( "spot_light.ambient", 0.0f, 0.0f, 0.0f);
+    cube_shader.setVec3( "spot_light.diffuse", 1.0f, 1.0f, 1.0f);
+    cube_shader.setVec3( "spot_light.specular", 1.0f, 1.0f, 1.0f);
+    cube_shader.setFloat("spot_light.constant", 1.0f);
+    cube_shader.setFloat("spot_light.linear", 0.09);
+    cube_shader.setFloat("spot_light.quadratic", 0.032);
+    cube_shader.setFloat("spot_light.cut_off", cos(radians(12.5f)));
+    cube_shader.setFloat("spot_light.outer_cut_off", cos(radians(15.0f)));
     for (int i = 0; i < 10; i++) {
       model = mat4();
       model = translate(model, cube_positions[i]);
@@ -180,18 +240,9 @@ int main(int argc, char* argv[]) {
       view = camera.GetViewMatrix();
       projection = perspective(radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-      cube_shader.use();
-      cube_shader.setVec3("view_pos", camera.Position);
       cube_shader.setMat4("model", model);
       cube_shader.setMat4("view", view);
       cube_shader.setMat4("projection", projection);
-
-      cube_shader.setFloat("material.shininess", 64.0f);
-
-      cube_shader.setVec3("light.position", light_pos);
-      cube_shader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-      cube_shader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-      cube_shader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, diffuse_map);
