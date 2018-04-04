@@ -18,7 +18,7 @@
     <ClCompile Include="glad.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="stencil-testing.cpp">
+    <ClCompile Include="blending.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
