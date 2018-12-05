@@ -1,5 +1,3 @@
-#include <sys/time.h>
-
 #ifndef _COMMON_H
 #define _COMMON_H
 
@@ -12,11 +10,20 @@
   } \
 }while(0)
 
+#ifdef __linux__
+#include <sys/time.h>
 inline double seconds() {
   struct timeval tp;
   struct timezone tzp;
   int i = gettimeofday(&tp, &tzp);
   return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
+#elif _WIN32
+#include <Windows.h>
+inline double seconds() {
+  unsigned long long time = GetTickCount64();
+  return time * 1.0;
+}
+#endif
 
 #endif // _COMMON_H
