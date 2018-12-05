@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   iStart = seconds();
   cpuSum = cpuReduce(tmp, size);
   iElaps = seconds() - iStart;
-  printf("CPU: %lfms\n", iElaps);
+  printf("CPU: %lfs\n", iElaps);
   
   // ---------- KERNEL 1: Original Reduce ---------- //
   CHECK(cudaMemcpy(d_I, ipt, bytes, cudaMemcpyHostToDevice));
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   gpuReduceRecursive<<<grid, block>>>(d_I, d_O, size);
   CHECK(cudaDeviceSynchronize());
   iElaps = seconds() - iStart;
-  printf("GPU(KERNEL 1): %lfms\n", iElaps);
+  printf("GPU(KERNEL 1): %lfs\n", iElaps);
   
   CHECK(cudaMemcpy(opt, d_O, grid.x * sizeof(int), cudaMemcpyDeviceToHost));
   gpuSum = 0;
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   gpuReduceRecursiveL<<<grid, block>>>(d_I, d_O, size);
   CHECK(cudaDeviceSynchronize());
   iElaps = seconds() - iStart;
-  printf("GPU(KERNEL 2): %lfms\n", iElaps);
+  printf("GPU(KERNEL 2): %lfs\n", iElaps);
 
   CHECK(cudaMemcpy(opt, d_O, grid.x * sizeof(int), cudaMemcpyDeviceToHost));
   gpuSum = 0;
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
   gpuReduceInterleaved<<<grid, block>>>(d_I, d_O, size);
   CHECK(cudaDeviceSynchronize());
   iElaps = seconds() - iStart;
-  printf("GPU(KERNEL 3): %lfms\n", iElaps);
+  printf("GPU(KERNEL 3): %lfs\n", iElaps);
 
   CHECK(cudaMemcpy(opt, d_O, grid.x * sizeof(int), cudaMemcpyDeviceToHost));
   gpuSum = 0;
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
   gpuReduceInterleavedUnrolling2<<<grid.x / 2, block>>>(d_I, d_O, size);
   CHECK(cudaDeviceSynchronize());
   iElaps = seconds() - iStart;
-  printf("GPU(KERNEL 4): %lfms\n", iElaps);
+  printf("GPU(KERNEL 4): %lfs\n", iElaps);
 
   CHECK(cudaMemcpy(opt, d_O, grid.x * sizeof(int) / 2, cudaMemcpyDeviceToHost));
   gpuSum = 0;
