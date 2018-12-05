@@ -1,3 +1,6 @@
+## Ignore test location
+proving-ground/
+
 ## Ignore files genereated by VSCode
 .vscode/
 
