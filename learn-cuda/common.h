@@ -22,7 +22,7 @@ inline double seconds() {
 #include <Windows.h>
 inline double seconds() {
   unsigned long long time = GetTickCount64();
-  return time * 1.0;
+  return time * 1.0 / 1000;
 }
 #endif
 
