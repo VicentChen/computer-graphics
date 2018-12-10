@@ -20,9 +20,9 @@ inline double seconds() {
 }
 #elif _WIN32
 #include <Windows.h>
-inline double seconds() {
+inline unsigned long long seconds() {
   unsigned long long time = GetTickCount64();
-  return time * 1.0 / 1000;
+  return time;
 }
 #endif
 
