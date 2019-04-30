@@ -1,7 +1,7 @@
 # Ray Tracing
 
 ## Ray Tracing In A Week
-**To Read**
+![In a week](doc/img/in-a-week/in-a-week.png)
 
 ## Ray Tracing The Next Week
 **To Read**
