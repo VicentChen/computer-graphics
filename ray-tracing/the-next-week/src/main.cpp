@@ -6,6 +6,7 @@
 #include "HitableList.h"
 #include "Material.h"
 #include "Sphere.h"
+#include "MovingSphere.h"
 
 using namespace std;
 
@@ -27,6 +28,45 @@ Vec3 color(const Ray& r, HitableList* world, int depth) {
   }
 }
 
+HitableList* random_scene() {
+  int n = 500;
+
+  Hitable** list = new Hitable*[n + 1];
+  list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(Vec3(0.5, 0.5, 0.5)));
+  int i = 1;
+
+  for (int a = -5; a < 5; a++) {
+    for (int b = -5; b < 5; b++) {
+      float choose_mat = drand48();
+
+      Vec3 center(a + 0.9 * drand48(), 0.2, b + 0.9 * drand48());
+
+      if ((center - Vec3(4, 0.2, 0)).length() > 0.9) {
+        if (choose_mat < 0.8) {  // diffuse
+          list[i++] =
+              new MovingSphere(center, center + Vec3(0, 0.5 * drand48(), 0), 0.0, 1.0, 0.2,
+                               new Lambertian(Vec3(drand48() * drand48(), drand48() * drand48(),
+                                                   drand48() * drand48())));
+        } else if (choose_mat < 0.95) {  // metal
+          list[i++] = new Sphere(
+              center, 0.2,
+              new Metal(Vec3(0.5 * (1 + drand48()), 0.5 * (1 + drand48()), 0.5 * (1 + drand48())),
+                        0.5 * drand48()));
+        } else {  // glass
+          list[i++] = new Sphere(center, 0.2, new Dielectric(1.5));
+        }
+      }
+    }
+  }
+
+  list[i++] = new Sphere(Vec3(0, 1, 0), 1.0, new Dielectric(1.5));
+  list[i++] = new Sphere(Vec3(-4, 1, 0), 1.0, new Lambertian(Vec3(0.4, 0.2, 0.1)));
+  list[i++] = new Sphere(Vec3(4, 1, 0), 1.0, new Metal(Vec3(0.7, 0.6, 0.5), 0.0));
+
+  return new HitableList(list, i);
+}
+
+
 int main(int argc, char* argv) {
   // width,height,samples,channels
   const int W = 512, H = 512, S = 16, C = 3;
@@ -46,12 +86,13 @@ int main(int argc, char* argv) {
   list[4] = new Sphere(Vec3(-1, 0, -1), -0.45, new Dielectric(1.5));
 
   HitableList* world = new HitableList(list, 5);
+  world = random_scene();
 
-  Vec3 lookfrom(5, 5, 5);
-  Vec3 lookat(0, 0, -1);
+  Vec3 lookfrom(13, 2, 3);
+  Vec3 lookat(0, 0, 0);
   float dist_to_fcus = 10.0;
   float aperture = 0.1;
-  Camera camera(lookfrom, lookat, Vec3(0, 1, 0), 20, W * 1.0 / H, aperture, dist_to_fcus);
+  Camera camera(lookfrom, lookat, Vec3(0, 1, 0), 20, W * 1.0 / H, aperture, dist_to_fcus, 0.0, 1.0);
 
   Vec3 c;
   const int R = 0, G = 1, B = 2;
@@ -73,7 +114,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/test.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/MotionBlur.png", img, W, H, C);
 
   return 0;
 }
