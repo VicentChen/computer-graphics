@@ -14,6 +14,7 @@ class Sphere : public Hitable {
   Sphere(Vec3 c, float r, Material* mat_ptr) : c(c), r(r), mat_ptr(mat_ptr) {}
   ~Sphere() {}
   virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+  virtual bool bounding_box(float t0, float t1, AABB& box) const;
 };
 
 // Solving equation, X is hit point, C is sphere center, R is radius:
@@ -53,6 +54,11 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
     return true;
   }
   return false;
+}
+
+bool Sphere::bounding_box(float t0, float t1, AABB& box) const {
+  box = AABB(c - Vec3(r, r, r), c + Vec3(r, r, r));
+  return true;
 }
 
 #endif  // !SPHERE_H__

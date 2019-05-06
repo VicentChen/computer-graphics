@@ -2,6 +2,7 @@
 #define MOVING_SPHERE_H__
 
 #include "Sphere.h"
+#include "AABB.h"
 
 class MovingSphere : public Sphere{
  public:
@@ -14,6 +15,7 @@ class MovingSphere : public Sphere{
   }
 
   virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+  virtual bool bounding_box(float t0, float t1, AABB& box) const;
 
   Vec3 c0, c1;
   float t0, t1;
@@ -44,6 +46,13 @@ bool MovingSphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec)
     return true;
   }
   return false;
+}
+
+bool MovingSphere::bounding_box(float t0, float t1, AABB& box) const {
+  AABB box0(center(t0) - Vec3(r, r, r), center(t0) + Vec3(r, r, r));
+  AABB box1(center(t1) - Vec3(r, r, r), center(t1) + Vec3(r, r, r));
+  box = surrounding_box(box0, box1);
+  return true;
 }
 
 #endif  // !MOVING_SPHERE_H__

@@ -7,10 +7,12 @@
 #include "Material.h"
 #include "Sphere.h"
 #include "MovingSphere.h"
+#include "BvhNode.h"
+
 
 using namespace std;
 
-Vec3 color(const Ray& r, HitableList* world, int depth) {
+Vec3 color(const Ray& r, Hitable* world, int depth) {
   HitRecord rec;
   if (world->hit(r, 0.001, FLT_MAX, rec)) {
     Ray scattered;
@@ -28,7 +30,7 @@ Vec3 color(const Ray& r, HitableList* world, int depth) {
   }
 }
 
-HitableList* random_scene() {
+Hitable* random_scene() {
   int n = 500;
 
   Hitable** list = new Hitable*[n + 1];
@@ -63,7 +65,8 @@ HitableList* random_scene() {
   list[i++] = new Sphere(Vec3(-4, 1, 0), 1.0, new Lambertian(Vec3(0.4, 0.2, 0.1)));
   list[i++] = new Sphere(Vec3(4, 1, 0), 1.0, new Metal(Vec3(0.7, 0.6, 0.5), 0.0));
 
-  return new HitableList(list, i);
+  //return new HitableList(list, i);
+  return new BvhNode(list, i, 0.0, 1.0);
 }
 
 
@@ -85,7 +88,7 @@ int main(int argc, char* argv) {
   list[3] = new Sphere(Vec3(-1, 0, -1), 0.5, new Dielectric(1.5));
   list[4] = new Sphere(Vec3(-1, 0, -1), -0.45, new Dielectric(1.5));
 
-  HitableList* world = new HitableList(list, 5);
+  Hitable* world = new HitableList(list, 5);
   world = random_scene();
 
   Vec3 lookfrom(13, 2, 3);
@@ -114,7 +117,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/MotionBlur.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/BVH.png", img, W, H, C);
 
   return 0;
 }
