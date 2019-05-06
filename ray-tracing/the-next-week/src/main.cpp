@@ -1,14 +1,14 @@
 #include <cfloat>
 #include <iostream>
 #include <svpng.inc>
+#include "BvhNode.h"
 #include "Camera.h"
 #include "Common.h"
 #include "HitableList.h"
 #include "Material.h"
-#include "Sphere.h"
 #include "MovingSphere.h"
-#include "BvhNode.h"
-
+#include "Sphere.h"
+#include "Texture.h"
 
 using namespace std;
 
@@ -34,7 +34,9 @@ Hitable* random_scene() {
   int n = 500;
 
   Hitable** list = new Hitable*[n + 1];
-  list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(Vec3(0.5, 0.5, 0.5)));
+  Texture* checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
+                                      new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
+  list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(checker));
   int i = 1;
 
   for (int a = -5; a < 5; a++) {
@@ -45,10 +47,10 @@ Hitable* random_scene() {
 
       if ((center - Vec3(4, 0.2, 0)).length() > 0.9) {
         if (choose_mat < 0.8) {  // diffuse
-          list[i++] =
-              new MovingSphere(center, center + Vec3(0, 0.5 * drand48(), 0), 0.0, 1.0, 0.2,
-                               new Lambertian(Vec3(drand48() * drand48(), drand48() * drand48(),
-                                                   drand48() * drand48())));
+          list[i++] = new MovingSphere(
+              center, center + Vec3(0, 0.5 * drand48(), 0), 0.0, 1.0, 0.2,
+              new Lambertian(new ConstantTexture(
+                  Vec3(drand48() * drand48(), drand48() * drand48(), drand48() * drand48()))));
         } else if (choose_mat < 0.95) {  // metal
           list[i++] = new Sphere(
               center, 0.2,
@@ -62,13 +64,23 @@ Hitable* random_scene() {
   }
 
   list[i++] = new Sphere(Vec3(0, 1, 0), 1.0, new Dielectric(1.5));
-  list[i++] = new Sphere(Vec3(-4, 1, 0), 1.0, new Lambertian(Vec3(0.4, 0.2, 0.1)));
+  list[i++] =
+      new Sphere(Vec3(-4, 1, 0), 1.0, new Lambertian(new ConstantTexture(Vec3(0.4, 0.2, 0.1))));
   list[i++] = new Sphere(Vec3(4, 1, 0), 1.0, new Metal(Vec3(0.7, 0.6, 0.5), 0.0));
 
-  //return new HitableList(list, i);
+  // return new HitableList(list, i);
   return new BvhNode(list, i, 0.0, 1.0);
 }
 
+Hitable* two_spheres() { 
+  Texture* checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
+                                        new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
+  int n = 50;
+  Hitable** list = new Hitable*[n + 1];
+  list[0] = new Sphere(Vec3(0, -10, 0), 10, new Lambertian(checker));
+  list[1] = new Sphere(Vec3(0,  10, 0), 10, new Lambertian(checker));
+  return new HitableList(list, 2);
+}
 
 int main(int argc, char* argv) {
   // width,height,samples,channels
@@ -82,14 +94,17 @@ int main(int argc, char* argv) {
   Vec3 lower_left_corner(-1.0, -1.0, -1.0);
 
   Hitable* list[5];
-  list[0] = new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(Vec3(0.1, 0.2, 0.5)));
-  list[1] = new Sphere(Vec3(0, -100.5, -1), 100, new Lambertian(Vec3(0.8, 0.8, 0.0)));
+  list[0] =
+      new Sphere(Vec3(0, 0, -1), 0.5, new Lambertian(new ConstantTexture(Vec3(0.1, 0.2, 0.5))));
+  list[1] = new Sphere(Vec3(0, -100.5, -1), 100,
+                       new Lambertian(new ConstantTexture(Vec3(0.8, 0.8, 0.0))));
   list[2] = new Sphere(Vec3(1, 0, -1), 0.5, new Metal(Vec3(0.8, 0.6, 0.2), 0));
   list[3] = new Sphere(Vec3(-1, 0, -1), 0.5, new Dielectric(1.5));
   list[4] = new Sphere(Vec3(-1, 0, -1), -0.45, new Dielectric(1.5));
 
   Hitable* world = new HitableList(list, 5);
-  world = random_scene();
+  //world = random_scene();
+  world = two_spheres();
 
   Vec3 lookfrom(13, 2, 3);
   Vec3 lookat(0, 0, 0);
@@ -117,7 +132,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/BVH.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/Texture.png", img, W, H, C);
 
   return 0;
 }
