@@ -2,6 +2,7 @@
 #define TEXTURE_H__
 
 #include <cmath>
+#include "Perlin.h"
 #include "Vec3.h"
 
 class Texture {
@@ -33,6 +34,17 @@ class CheckerTexture : public Texture {
   }
 
   Texture *odd, *even;
+};
+
+class NoiseTexture : public Texture {
+ public:
+  NoiseTexture() {}
+  NoiseTexture(float scale_) : scale(scale_) {}
+  virtual Vec3 value(float u, float v, const Vec3& p) const {
+    return Vec3(1, 1, 1) * 0.5 * (1 + sin(scale * p.z() + 10 * noise.turb(p)));
+  }
+  Perlin noise;
+  float scale;
 };
 
 #endif  // !TEXTURE_H__

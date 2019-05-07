@@ -82,6 +82,15 @@ Hitable* two_spheres() {
   return new HitableList(list, 2);
 }
 
+Hitable* two_perlin_spheres() {
+  Texture* pertext = new NoiseTexture(4);
+  int n = 50;
+  Hitable** list = new Hitable*[n + 1];
+  list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(pertext));
+  list[1] = new Sphere(Vec3(0, 2, 0), 2, new Lambertian(pertext));
+  return new HitableList(list, 2);
+}
+
 int main(int argc, char* argv) {
   // width,height,samples,channels
   const int W = 512, H = 512, S = 16, C = 3;
@@ -104,12 +113,12 @@ int main(int argc, char* argv) {
 
   Hitable* world = new HitableList(list, 5);
   //world = random_scene();
-  world = two_spheres();
+  world = two_perlin_spheres();
 
   Vec3 lookfrom(13, 2, 3);
   Vec3 lookat(0, 0, 0);
   float dist_to_fcus = 10.0;
-  float aperture = 0.1;
+  float aperture = 0.0;
   Camera camera(lookfrom, lookat, Vec3(0, 1, 0), 20, W * 1.0 / H, aperture, dist_to_fcus, 0.0, 1.0);
 
   Vec3 c;
@@ -132,7 +141,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/Texture.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/Perlin.png", img, W, H, C);
 
   return 0;
 }
