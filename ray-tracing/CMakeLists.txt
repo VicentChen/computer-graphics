@@ -8,6 +8,7 @@ set(DEPENDENCY_DIR ${CMAKE_BINARY_DIR}/dependencies)
 file(MAKE_DIRECTORY ${DEPENDENCY_DIR})
 file(MAKE_DIRECTORY ${DEPENDENCY_DIR}/include)
 file(MAKE_DIRECTORY ${DEPENDENCY_DIR}/lib)
+file(MAKE_DIRECTORY ${DEPENDENCY_DIR}/img)
 
 add_subdirectory(external)
 add_subdirectory(in-a-week)

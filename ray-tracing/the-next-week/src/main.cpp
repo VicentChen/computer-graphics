@@ -17,16 +17,14 @@ Vec3 color(const Ray& r, Hitable* world, int depth) {
   if (world->hit(r, 0.001, FLT_MAX, rec)) {
     Ray scattered;
     Vec3 attenuation;
+    Vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
     if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-      return attenuation * color(scattered, world, depth + 1);
+      return emitted + attenuation * color(scattered, world, depth + 1);
     } else {
-      return Vec3(0, 0, 0);
+      return emitted;
     }
   } else {
-    // background
-    Vec3 unit_direction = unit_vector(r.d);
-    float t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
+    return Vec3(0, 0, 0);
   }
 }
 
@@ -72,7 +70,15 @@ Hitable* random_scene() {
   return new BvhNode(list, i, 0.0, 1.0);
 }
 
-Hitable* two_spheres() { 
+Hitable* earth() {
+  int W, H, C;
+  // TODO: memory leaks here
+  unsigned char* img = LoadImage("../dependencies/img/earth.jpg", &W, &H, &C);
+  Material* earth = new Lambertian(new ImageTexture(img, W, H));
+  return new Sphere(Vec3(0, 0, 0), 2, earth);
+}
+
+Hitable* two_spheres() {
   Texture* checker = new CheckerTexture(new ConstantTexture(Vec3(0.2, 0.3, 0.1)),
                                         new ConstantTexture(Vec3(0.9, 0.9, 0.9)));
   int n = 50;
@@ -113,7 +119,8 @@ int main(int argc, char* argv) {
 
   Hitable* world = new HitableList(list, 5);
   //world = random_scene();
-  world = two_perlin_spheres();
+  //world = two_perlin_spheres();
+  world = earth();
 
   Vec3 lookfrom(13, 2, 3);
   Vec3 lookat(0, 0, 0);
@@ -141,7 +148,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/Perlin.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/Texture.png", img, W, H, C);
 
   return 0;
 }

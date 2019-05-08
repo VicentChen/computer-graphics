@@ -11,6 +11,8 @@ struct HitRecord {
   Vec3 p;
   Vec3 n;             // normal
   Material *mat_ptr;  // material
+  float u;
+  float v;
 };
 
 class Hitable {

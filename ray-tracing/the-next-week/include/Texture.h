@@ -47,4 +47,28 @@ class NoiseTexture : public Texture {
   float scale;
 };
 
+class ImageTexture : public Texture{
+ public:
+  ImageTexture() {}
+  ImageTexture(unsigned char* data_, int W_, int H_) : data(data_), W(W_), H(H_) {}
+
+  virtual Vec3 value(float u, float v, const Vec3& p) const {
+    int i = u * W;
+    int j = (1 - v) * H - 0.001;
+    if (i < 0) i = 0;
+    if (j < 0) j = 0;
+    if (i > W - 1) i = W - 1;
+    if (j > H - 1) j = H - 1;
+    float r = int(data[3 * i + 3 * W * j + 0]) / 255.0;
+    float g = int(data[3 * i + 3 * W * j + 1]) / 255.0;
+    float b = int(data[3 * i + 3 * W * j + 2]) / 255.0;
+    return Vec3(r, g, b);
+  }
+
+  unsigned char *data;
+  int W, H;
+};
+
+
+
 #endif  // !TEXTURE_H__

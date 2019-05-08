@@ -4,6 +4,13 @@
 #include "Hitable.h"
 #include "Material.h"
 
+inline void get_sphere_uv(const Vec3& p, float& u, float& v) {
+  float phi = atan2(p.z(), p.x());
+  float theta = asin(p.y());
+  u = 1 - (phi + M_PI) / (2 * M_PI);
+  v = (theta + M_PI / 2) / M_PI;
+}
+
 class Sphere : public Hitable {
  public:
   Vec3 c;   // center
@@ -49,6 +56,7 @@ bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 
     rec.t = x;
     rec.p = ray.point_at_parameter(x);
+    get_sphere_uv((rec.p - c) / r, rec.u, rec.v);
     rec.n = (rec.p - c) / r;
     rec.mat_ptr = mat_ptr;
     return true;
