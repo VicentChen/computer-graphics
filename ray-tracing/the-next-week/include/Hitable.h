@@ -21,4 +21,25 @@ class Hitable {
   virtual bool bounding_box(float t0, float t1, AABB &box) const = 0;
 };
 
+class FilpNormals : public Hitable {
+ public:
+  FilpNormals(Hitable *p_) : p(p_) {}
+
+  virtual bool hit(const Ray &ray, float t_min, float t_max, HitRecord &rec) const {
+    if (p->hit(ray, t_min, t_max, rec)) {
+      rec.n = -1 * rec.n;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  virtual bool bounding_box(float t0, float t1, AABB &box) const {
+    return p->bounding_box(t0, t1, box);
+  }
+
+  Hitable *p;
+};
+
+
 #endif  // !HITABLE_H__

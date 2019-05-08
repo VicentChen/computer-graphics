@@ -4,11 +4,13 @@
 #include "BvhNode.h"
 #include "Camera.h"
 #include "Common.h"
+#include "Hitable.h"
 #include "HitableList.h"
 #include "Material.h"
 #include "MovingSphere.h"
 #include "Sphere.h"
 #include "Texture.h"
+#include "Rectangle.h"
 
 using namespace std;
 
@@ -24,6 +26,10 @@ Vec3 color(const Ray& r, Hitable* world, int depth) {
       return emitted;
     }
   } else {
+    // background
+    //Vec3 unit_direction = unit_vector(r.d);
+    //float t = 0.5 * (unit_direction.y() + 1.0);
+    //return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
     return Vec3(0, 0, 0);
   }
 }
@@ -97,9 +103,35 @@ Hitable* two_perlin_spheres() {
   return new HitableList(list, 2);
 }
 
+Hitable* simple_light() {
+  Texture* pertext = new NoiseTexture(4);
+  Hitable** list = new Hitable*[4];
+  list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new Lambertian(pertext));
+  list[1] = new Sphere(Vec3(0, 2, 0), 2, new Lambertian(pertext));
+  list[2] = new XYRect(3, 5, 1, 3, -2, new DiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
+  list[3] = new Sphere(Vec3(0, 7, 0), 2, new DiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
+  return new HitableList(list, 4);
+}
+
+Hitable* cornell_box() {
+  Hitable** list = new Hitable*[8];
+  int i = 0;
+  Material* red = new Lambertian(new ConstantTexture(Vec3(0.65, 0.05, 0.05)));
+  Material* white = new Lambertian(new ConstantTexture(Vec3(0.73, 0.73, 0.73)));
+  Material* green = new Lambertian(new ConstantTexture(Vec3(0.12, 0.45, 0.15)));
+  Material* light = new DiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+  list[i++] = new FilpNormals(new YZRect(0, 555, 0, 555, 555, green));
+  list[i++] = new YZRect(0, 555, 0, 555, 0, red);
+  list[i++] = new XZRect(213, 343, 227, 332, 554, light);
+  list[i++] = new FilpNormals(new XZRect(0, 555, 0, 555, 555, white));
+  list[i++] = new XZRect(0, 555, 0, 555, 0, white);
+  list[i++] = new FilpNormals(new XYRect(0, 555, 0, 555, 555, white));
+  return new HitableList(list, i);
+}
+
 int main(int argc, char* argv) {
   // width,height,samples,channels
-  const int W = 512, H = 512, S = 16, C = 3;
+  const int W = 512, H = 512, S = 64, C = 3;
 
   unsigned char* img = new unsigned char[W * H * C];
 
@@ -120,13 +152,16 @@ int main(int argc, char* argv) {
   Hitable* world = new HitableList(list, 5);
   //world = random_scene();
   //world = two_perlin_spheres();
-  world = earth();
+  //world = earth();
+  //world = simple_light();
+  world = cornell_box();
 
-  Vec3 lookfrom(13, 2, 3);
-  Vec3 lookat(0, 0, 0);
+  Vec3 lookfrom(278, 278, -800);
+  Vec3 lookat(278, 278, 0);
   float dist_to_fcus = 10.0;
   float aperture = 0.0;
-  Camera camera(lookfrom, lookat, Vec3(0, 1, 0), 20, W * 1.0 / H, aperture, dist_to_fcus, 0.0, 1.0);
+  float vfov = 40.0;
+  Camera camera(lookfrom, lookat, Vec3(0, 1, 0), vfov, W * 1.0 / H, aperture, dist_to_fcus, 0.0, 1.0);
 
   Vec3 c;
   const int R = 0, G = 1, B = 2;
@@ -148,7 +183,7 @@ int main(int argc, char* argv) {
     }
   }
 
-  SaveImage("../../doc/img/the-next-week/Texture.png", img, W, H, C);
+  SaveImage("../../doc/img/the-next-week/Rect.png", img, W, H, C);
 
   return 0;
 }

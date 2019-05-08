@@ -38,7 +38,7 @@ class Material {
  public:
   virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Vec3& attenuation,
                        Ray& scattered) const = 0;
-  virtual Vec3 emitted(float u, float v, Vec3& p) const { return Vec3(0, 0, 0); }
+  virtual Vec3 emitted(float u, float v, const Vec3& p) const { return Vec3(0, 0, 0); }
 };
 
 class Lambertian : public Material {
@@ -130,9 +130,10 @@ bool Dielectric::scatter(const Ray& ray_in, const HitRecord& rec, Vec3& attenuat
   return true;
 }
 
-class DiffuseLight : public Texture {
+class DiffuseLight : public Material {
  public:
   DiffuseLight() {}
+  DiffuseLight(Texture* emit_) : emit(emit_) {}
 
   virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Vec3& attenuation,
                        Ray& scattered) const {
