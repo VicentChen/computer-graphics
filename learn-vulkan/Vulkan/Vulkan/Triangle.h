@@ -1,13 +1,17 @@
 #pragma once
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 // ----- macros for self-implemented logs ----- //
 #define USE_VERBOSE_EXIT 1
-#define CREATE_INSTANCE_VERBOSE 1
-#define CHECK_VALIDATION_LAYER_SUPPORT_VERBOSE 1
+#define CREATE_INSTANCE_VERBOSE 0
+#define CHECK_VALIDATION_LAYER_SUPPORT_VERBOSE 0
+#define CHECK_DEVICE_EXTENSION_SUPPORT_VERBOSE 0
+#define PICK_PHYSICAL_DEVICE_VERBOSE 1
 
 #define OUTPUT_HEADER() \
 	do { \
@@ -40,17 +44,22 @@ const bool EnableValidationLayers = false;
 const bool EnableValidationLayers = true;
 #endif
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_LUNARG_standard_validation" };
+const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-VkResult CreateDebugUtilsMessengerEXT(
-	VkInstance vInstance,
-	const VkDebugUtilsMessengerCreateInfoEXT* vCreateInfo,
-	const VkAllocationCallbacks* vAllocator,
-	VkDebugUtilsMessengerEXT* vDebugMessenger);
+struct QueueFamilyIndices
+{
+	std::optional<uint32_t> GraphicsFamily;
+	std::optional<uint32_t> PresentFamily;
 
-VkResult DestroyDebugUtilsMessengerEXT(
-	VkInstance vInstance,
-	VkDebugUtilsMessengerEXT vDebugMessenger,
-	const VkAllocationCallbacks* vAllocator);
+	bool isComplete() { return GraphicsFamily.has_value() && PresentFamily.has_value(); }
+};
+
+struct SwapChainSupportDetails
+{
+	VkSurfaceCapabilitiesKHR Capabilities;
+	std::vector<VkSurfaceFormatKHR> Formats;
+	std::vector<VkPresentModeKHR> PresentModes;
+};
 
 class HelloTriangleApplication
 {
@@ -60,6 +69,7 @@ public:
 		VkDebugUtilsMessageTypeFlagsEXT vMessageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* vCallbackData,
 		void* vUserData);
+	static std::vector<char> readFile(const std::string& vFileName);
 	
 	void run();
 	
@@ -71,7 +81,21 @@ public:
 	std::vector<const char*> getRequiredExtensions(); // createInstance()
 	void setupDebugMessenger(); // initVulkan()
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& voCreateInfo); // setupDebugMessenger()
-	
+	void pickPhysicalDevice(); // initVulkan()
+	bool isDeviceSuitable(VkPhysicalDevice vDevice); // pickPhysicalDevice()
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice vDevice); // isDeviceSuitable()
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice vDevice); // isDeviceSuitable()
+	bool checkDeviceExtensionSupport(VkPhysicalDevice vDevice); // isDeviceSuitable()
+	void createLogicalDevice(); // initVulkan()
+	void createSurface(); // initVulkan()
+	void createSwapChain(); // initVulkan()
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& vSupportedFormats); // createSwapChain()
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& vSupportedPresentModes); // createSwapChain()
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& vCapabilities); // createSwapChain()
+	void createImageViews(); // initVulkan()
+	void createRenderPass(); // initVulkan()
+	void createGraphicsPipeline(); // initVulkan()
+	VkShaderModule createShaderModule(const std::vector<char>& vCode); // createGraphicsPipeline()
 	void mainLoop();
 	void cleanup();
 	
@@ -79,7 +103,36 @@ private:
 
 	VkInstance m_Instance;
 	VkDebugUtilsMessengerEXT m_DebugMessenger;
+	VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+	VkDevice m_Device;
+
+	// ----- Queues ----- //
+	VkQueue m_GraphicsQueue;
+	VkQueue m_PresentQueue;
+
+	VkSurfaceKHR m_Surface;
+	
+	VkSwapchainKHR m_SwapChain;
+	std::vector<VkImage> m_SwapChainImages;
+	VkFormat m_SwapChainImageFormat;
+	VkExtent2D m_SwapChainExtent;
+	std::vector<VkImageView> m_SwapChainImageViews;
+
+	VkRenderPass m_RenderPass;
+	VkPipelineLayout m_PipelineLayout;
+	VkPipeline m_GraphicsPipeline;
 	
 	// ----- GLFW window ----- //
 	GLFWwindow* m_pWindow;
 };
+
+VkResult CreateDebugUtilsMessengerEXT(
+	VkInstance vInstance,
+	const VkDebugUtilsMessengerCreateInfoEXT* vCreateInfo,
+	const VkAllocationCallbacks* vAllocator,
+	VkDebugUtilsMessengerEXT* vDebugMessenger);
+
+VkResult DestroyDebugUtilsMessengerEXT(
+	VkInstance vInstance,
+	VkDebugUtilsMessengerEXT vDebugMessenger,
+	const VkAllocationCallbacks* vAllocator);
