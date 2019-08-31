@@ -71,7 +71,7 @@ public:
 		const VkDebugUtilsMessengerCallbackDataEXT* vCallbackData,
 		void* vUserData);
 	static std::vector<char> readFile(const std::string& vFileName);
-	
+	static void framebufferResizeCallback(GLFWwindow* vWindow, int vWidth, int vHeight);
 	void run();
 	
 	void initWindow();
@@ -103,7 +103,9 @@ public:
 	void createSyncObjects(); // initVulkan()
 	
 	void mainLoop();
-	void drawFrame(); // mainLoop();
+	void drawFrame(); // mainLoop()
+	void recreateSwapChain();
+	void cleanupSwapChain(); // recreateSwapChain()
 	
 	void cleanup();
 	
@@ -142,6 +144,7 @@ private:
 	std::vector<VkSemaphore> m_RenderFinishedSemaphores;
 	std::vector<VkFence> m_InFlightFences;
 	size_t m_CurrentFrame = 0;
+	bool m_FramebufferResized = false;
 	
 	// ----- GLFW window ----- //
 	GLFWwindow* m_pWindow;
