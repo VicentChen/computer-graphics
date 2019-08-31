@@ -43,6 +43,7 @@ const bool EnableValidationLayers = false;
 #else
 const bool EnableValidationLayers = true;
 #endif
+const int MAX_FRAMES_IN_FLIGHT = 2;
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_LUNARG_standard_validation" };
 const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
@@ -96,7 +97,14 @@ public:
 	void createRenderPass(); // initVulkan()
 	void createGraphicsPipeline(); // initVulkan()
 	VkShaderModule createShaderModule(const std::vector<char>& vCode); // createGraphicsPipeline()
+	void createFrameBuffers(); // initVulkan()
+	void createCommandPool(); // initVulkan()
+	void createCommandBuffers(); // initVulkan()
+	void createSyncObjects(); // initVulkan()
+	
 	void mainLoop();
+	void drawFrame(); // mainLoop();
+	
 	void cleanup();
 	
 private:
@@ -111,16 +119,29 @@ private:
 	VkQueue m_PresentQueue;
 
 	VkSurfaceKHR m_Surface;
-	
+
+	// ----- Swap Chain ----- //
 	VkSwapchainKHR m_SwapChain;
 	std::vector<VkImage> m_SwapChainImages;
 	VkFormat m_SwapChainImageFormat;
 	VkExtent2D m_SwapChainExtent;
 	std::vector<VkImageView> m_SwapChainImageViews;
+	std::vector<VkFramebuffer> m_SwapChainFrameBuffers;
 
+	// ----- Pipeline ----- //
 	VkRenderPass m_RenderPass;
 	VkPipelineLayout m_PipelineLayout;
 	VkPipeline m_GraphicsPipeline;
+
+	// ----- Commands ----- //
+	VkCommandPool m_CommandPool;
+	std::vector<VkCommandBuffer> m_CommandBuffers;
+
+	// ----- Semaphores ----- //
+	std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+	std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+	std::vector<VkFence> m_InFlightFences;
+	size_t m_CurrentFrame = 0;
 	
 	// ----- GLFW window ----- //
 	GLFWwindow* m_pWindow;
