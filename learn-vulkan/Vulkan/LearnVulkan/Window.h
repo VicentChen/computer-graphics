@@ -1,7 +1,5 @@
 #pragma once
-#include "Common.h"
 #include "Config.h"
-#include <GLFW/glfw3.h>
 
 namespace LearnVulkan
 {

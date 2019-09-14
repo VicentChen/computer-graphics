@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <iostream>
 
 #define USE_VERBOSE_EXIT 1
 
@@ -22,14 +22,17 @@
 		std::cout << "----- " << __FILE__ << ' ' << __LINE__ << ": " << __func__ << " -----" << std::endl;\
 	} while(0)
 
+#define LOG_TAILER() \
+	do {\
+		std::cout << "-------------------------------------------" << std::endl; \
+	} while(0)
+
 #define LOG_INFO(Msg) \
 	do { \
-		LOG_HEADER(); \
-		std::cout << "[INFO ] " << (Msg) << std::endl; \
+		std::cout << "[****APP****][ INFO  ]" << (Msg) << std::endl; \
 	} while(0)
 
 #define LOG_ERROR(Msg) \
 	do {\
-		LOG_HEADER(); \
-		std::cout << "[ERROR] " << (Msg) << std::endl; \
+		std::cout << "[****APP****][ ERROR ]" << (Msg) << std::endl; \
 	} while(0)
