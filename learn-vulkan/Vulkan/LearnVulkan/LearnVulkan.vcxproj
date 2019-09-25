@@ -80,6 +80,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;..\..\External\glm;..\..\External\glfw-3.3.bin.WIN64\include;..\..\External\stb;..\..\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>NDEBUG;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -127,16 +128,38 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CommandPool.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="Queue.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Surface.cpp" />
+    <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandPool.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="Queue.h" />
+    <ClInclude Include="RenderPass.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Surface.h" />
+    <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Triangle.frag" />
+    <None Include="Shaders\Triangle.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

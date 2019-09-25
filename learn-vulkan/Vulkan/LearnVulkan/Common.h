@@ -1,14 +1,17 @@
 #pragma once
 #include "Log.h"
-#include <algorithm>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <string>
+#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
 #define CAST_U32I(i) static_cast<uint32_t>(i)
+#define CAST_FLT(i) static_cast<float>(i)
 
 #define ENABLE_CHECK 1
 
@@ -51,7 +54,7 @@ namespace LearnVulkan
 		case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: std::cerr << "[PERFORMANCE]"; break;
 		default:                                              std::cerr << "[  UNKNOWN  ]"; break;
 		}
-		
+
 		switch (vMessageSeverity)
 		{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: std::cerr << "[VERBOSE]"; break;
@@ -65,13 +68,13 @@ namespace LearnVulkan
 
 		return VK_FALSE;
 	}
-	
+
 	inline bool checkInstanceExtensionSupport(vk::Instance& vInstance, const std::vector<const char*>& vLayers, const std::vector<const char*>& vExtensions)
 	{
 #if ENABLE_CHECK
 		std::set<std::string> RequestedLayerSet(vLayers.begin(), vLayers.end());
 		std::set<std::string> RequestedExtensionSet(vExtensions.begin(), vExtensions.end());
-		
+
 		auto SupportedLayers = vk::enumerateInstanceLayerProperties();
 		for (const auto& SupportedLayer : SupportedLayers) RequestedLayerSet.erase(SupportedLayer.layerName);
 		if (!RequestedLayerSet.empty())
@@ -97,12 +100,29 @@ namespace LearnVulkan
 #endif
 		return true;
 	}
-	
+
 	inline bool checkPhysicalDeviceSupport(vk::PhysicalDevice& vPhysicalDevice, vk::QueueFlags vFlags, const std::vector<const char*>& vExtensions)
 	{
 #if ENABLE_CHECK
 		auto QueueFamilies = vPhysicalDevice.getQueueFamilyProperties();
 #endif		
 		return true;
+	}
+
+	inline std::vector<char> readFile(const std::string& vFilePath)
+	{
+		std::ifstream File(vFilePath, std::ios::ate | std::ios::binary);
+
+		if (!File.is_open()) VERBOSE_EXIT("File not opened");
+
+		size_t FileSize = static_cast<size_t>(File.tellg());
+		std::vector<char> Buffer(FileSize);
+
+		File.seekg(0);
+		File.read(Buffer.data(), FileSize);
+
+		File.close();
+
+		return Buffer;
 	}
 }

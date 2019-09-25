@@ -1,4 +1,5 @@
 #include "Instance.h"
+#include "Surface.h"
 #include "Device.h"
 
 using namespace LearnVulkan;
@@ -19,12 +20,21 @@ Instance::Instance(const vk::ApplicationInfo& vAppInfo, const std::vector<const 
 
 	if(!checkInstanceExtensionSupport(m_Instance.get(), Layers, Extensions)) LOG_ERROR("Not supported extension");
 	m_Instance = vk::createInstanceUnique(Info);
+#ifndef NDEBUG
 	__createDebugCallback();
+#endif
+}
+
+Instance::~Instance()
+{
+#ifndef NDEBUG
+	m_Instance->destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, vk::DispatchLoaderDynamic{ m_Instance.get() });
+#endif
 }
 
 //*********************************************************************
 //FUNCTION:
-PhysicalDevice Instance::initPhysicalDevice(const std::map<std::string, vk::QueueFlags>& vRequestedQueueFamilies) const
+PhysicalDevice Instance::initPhysicalDevice(Surface& vSurface, const std::map<std::string, vk::QueueFlags>& vRequestedQueueFamilies) const
 {
 	std::vector<vk::PhysicalDevice> AvailableDevices = m_Instance->enumeratePhysicalDevices();
 	std::vector<PhysicalDevice> SuitableDevices;
@@ -35,17 +45,34 @@ PhysicalDevice Instance::initPhysicalDevice(const std::map<std::string, vk::Queu
 		auto QueueProperties = Device.getQueueFamilyProperties();
 		for (const auto& [QueueName, QueueFlag] : vRequestedQueueFamilies)
 		{
-			size_t QueueFamilyIndex = std::distance(QueueProperties.begin(),
-				std::find_if(QueueProperties.begin(), QueueProperties.end(),
-					[&](vk::QueueFamilyProperties const& vProperty) { return QueueFlag == (vProperty.queueFlags & QueueFlag); }));
-			if (QueueFamilyIndex != QueueProperties.size()) QueueFamilyIndices.insert(std::make_pair(QueueName, QueueFamilyIndex));
-			else break; // early end
+			bool Found = false;
+			size_t QueueFamilyIndex = 0;
+			for(auto i = QueueProperties.begin(); !Found && i != QueueProperties.end(); i = QueueProperties.begin() + QueueFamilyIndex)
+			{
+				QueueFamilyIndex = std::distance(QueueProperties.begin(),
+					std::find_if(i, QueueProperties.end(),
+						[&](vk::QueueFamilyProperties const& vProperty) { return QueueFlag == (vProperty.queueFlags & QueueFlag); }));
+				if (!Device.getSurfaceSupportKHR(QueueFamilyIndex, vSurface.fetchSurface().get())) continue;
+#ifdef _WIN32 || _WIN64
+				if (!Device.getWin32PresentationSupportKHR(QueueFamilyIndex)) continue;
+#endif
+				if (QueueFamilyIndex != QueueProperties.size())
+				{
+					QueueFamilyIndices.insert(std::make_pair(QueueName, QueueFamilyIndex));
+					Found = true;
+				}
+			}
+			if (!Found) break; //early end
 		}
-		if (QueueFamilyIndices.size() != vRequestedQueueFamilies.size()) continue;
+		if (QueueFamilyIndices.size() != vRequestedQueueFamilies.size())
+		{
+			LOG_INFO(std::string("Device ") + Device.getProperties().deviceName + " not suitable");
+			continue;
+		}
 		
 		SuitableDevices.emplace_back(PhysicalDevice(Device, QueueFamilyIndices));
 	}
-
+	if (SuitableDevices.empty()) VERBOSE_EXIT("No suitable device");
 	return SuitableDevices.front();
 }
 
@@ -60,7 +87,5 @@ void Instance::__createDebugCallback()
 		debugMessengerCallback,
 		nullptr
 	};
-	[[maybe_unused]] PFN_vkVoidFunction CreateDebugFunc = m_Instance->getProcAddr("vkCreateDebugUtilsMessengerEXT");
-	[[maybe_unused]] PFN_vkVoidFunction DestroyDebugFunc = m_Instance->getProcAddr("vkDestroyDebugUtilsMessengerEXT");
-	m_Instance->createDebugUtilsMessengerEXTUnique(CreateInfo, nullptr, vk::DispatchLoaderDynamic{ m_Instance.get() });
+	m_DebugMessenger = m_Instance->createDebugUtilsMessengerEXT(CreateInfo, nullptr, vk::DispatchLoaderDynamic{ m_Instance.get() });
 }

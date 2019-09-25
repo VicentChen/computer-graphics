@@ -196,16 +196,20 @@ private:
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+
+		std::vector<const char*> Layers = { "VK_LAYER_LUNARG_api_dump",
+				"VK_LAYER_LUNARG_monitor", 	"VK_LAYER_LUNARG_standard_validation" };
+		
 		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = static_cast<uint32_t>(Layers.size());
+			createInfo.ppEnabledLayerNames = Layers.data();
 
 			populateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 		}
 		else {
-			createInfo.enabledLayerCount = 0;
-
+			createInfo.enabledLayerCount = static_cast<uint32_t>(Layers.size()) - 1;
+			createInfo.ppEnabledLayerNames = Layers.data();
 			createInfo.pNext = nullptr;
 		}
 
