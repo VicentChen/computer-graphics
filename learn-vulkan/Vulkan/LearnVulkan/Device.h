@@ -41,8 +41,6 @@ namespace LearnVulkan
 		Swapchain initSwapchain(PhysicalDevice& vPhysicalDevice, Surface& vSurface, uint32_t vWidth = Default::Window::WIDTH, uint32_t vHeight = Default::Window::HEIGHT, vk::ImageViewCreateInfo vImageViewCreateInfo = Default::Swapchain::ImageViewCreateInfo);
 		Shader initShader(vk::ShaderStageFlagBits vStage, const std::string& vShaderFilePath, const std::vector<vk::VertexInputBindingDescription>& vBindings = {}, const std::vector<vk::VertexInputAttributeDescription>& vAttributes = {}, const std::string& vEntrance = Default::Pipeline::Entrance);
 
-		vk::UniqueSemaphore initSemaphore(const vk::SemaphoreCreateInfo& vInfo = Default::Device::SemaphoreInfo) { return m_Device->createSemaphoreUnique(vInfo); }
-		
 		static Device createByPhysicalDevice(const PhysicalDevice& vPhysicalDevice,
 			const std::vector<const char*>& vLayerNames = Default::PhysicalDevice::LayerNames,
 			const std::vector<const char*>& vExtensionNames = Default::PhysicalDevice::ExtensionNames,
@@ -53,6 +51,7 @@ namespace LearnVulkan
 
 		vk::UniqueDevice m_Device;
 		std::map<std::string, uint32_t> m_QueueFamilyIndices;
+		Swapchain* m_pSwapchain = nullptr;
 		
 		friend class PhysicalDevice;
 	};

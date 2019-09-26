@@ -14,6 +14,7 @@ namespace LearnVulkan
 			const int HEIGHT = 600;
 			const std::string TITLE = "Learn Vulkan";
 
+			const int FRAMES_IN_FLIGHT = 2;
 		}
 
 		namespace Application
@@ -94,6 +95,7 @@ namespace LearnVulkan
 				nullptr
 			};
 			const vk::SemaphoreCreateInfo SemaphoreInfo = {};
+			const vk::FenceCreateInfo FenceInfo = { vk::FenceCreateFlagBits::eSignaled };
 		}
 
 		namespace Swapchain
@@ -119,8 +121,8 @@ namespace LearnVulkan
 
 		namespace Pipeline
 		{
-			const std::string VertexPath = "Shaders/Triangle.vert.spv";
-			const std::string FragmentPath = "Shaders/Triangle.frag.spv";
+			const std::string VertexPath = "D:/Github/computer-graphics/learn-vulkan/Vulkan/LearnVulkan/Shaders/Triangle.vert.spv";
+			const std::string FragmentPath = "D:/Github/computer-graphics/learn-vulkan/Vulkan/LearnVulkan/Shaders/Triangle.frag.spv";
 			const std::string Entrance = "main";
 		}
 

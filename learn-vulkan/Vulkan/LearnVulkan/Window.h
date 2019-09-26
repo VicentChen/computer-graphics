@@ -5,7 +5,6 @@
 #include "Queue.h"
 #include "CommandPool.h"
 #include "FrameBuffer.h"
-#include "Instance.h"
 
 namespace LearnVulkan
 {
@@ -20,7 +19,7 @@ namespace LearnVulkan
 		GLFWwindow* getWindowPtr() { return m_pWindow; }
 		
 	private:
-		void __draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore);
+		void __draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence);
 		
 		GLFWwindow* m_pWindow = nullptr;
 		Device* m_pDevice = nullptr;

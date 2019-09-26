@@ -39,9 +39,6 @@ int main(int argc, char* argv[])
 	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline);
 	command_pool.constructCommandPool();
 	command_pool.constructCommandBuffers();
-
-	vk::UniqueSemaphore Ready2RenderSemaphore = device.initSemaphore();
-	vk::UniqueSemaphore Ready2PresentSemaphore = device.initSemaphore();
 	
 	window.init(&device, &swapchain, &graphics_queue, &present_queue, &framebuffer, &command_pool);
 	window.display();

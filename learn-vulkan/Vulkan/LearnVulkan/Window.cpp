@@ -32,23 +32,36 @@ void Window::init(Device* vDevice, Swapchain* vSwapchain, Queue* vGraphicsQueue,
 //FUNCTION:
 void Window::display()
 {
-	vk::UniqueSemaphore Ready2RenderSemaphore = m_pDevice->fetchDevice().createSemaphoreUnique(Default::Device::SemaphoreInfo);
-	vk::UniqueSemaphore Ready2PresentSemaphore = m_pDevice->fetchDevice().createSemaphoreUnique(Default::Device::SemaphoreInfo);
-	vk::Semaphore& RenderSemaphore = Ready2RenderSemaphore.get();
-	vk::Semaphore& PresentSemaphore = Ready2PresentSemaphore.get();
-	while(!glfwWindowShouldClose(m_pWindow))
+	std::vector<vk::UniqueSemaphore> Ready2RenderSemaphores ;
+	std::vector<vk::UniqueSemaphore> Ready2PresentSemaphores;
+	std::vector<vk::UniqueFence> InFlightFences;
+
+	for (size_t i = 0; i < Default::Window::FRAMES_IN_FLIGHT; i++)
+	{
+		Ready2RenderSemaphores.emplace_back(m_pDevice->fetchDevice().createSemaphoreUnique(Default::Device::SemaphoreInfo));
+		Ready2PresentSemaphores.emplace_back(m_pDevice->fetchDevice().createSemaphoreUnique(Default::Device::SemaphoreInfo));
+		InFlightFences.emplace_back(m_pDevice->fetchDevice().createFenceUnique(Default::Device::FenceInfo));
+	}
+	
+	for(int CurrentFrame = 0; !glfwWindowShouldClose(m_pWindow); CurrentFrame = (CurrentFrame + 1) % Default::Window::FRAMES_IN_FLIGHT)
 	{
 		glfwPollEvents();
-		__draw(RenderSemaphore, PresentSemaphore);
+		
+		vk::Semaphore& RenderSemaphore = Ready2RenderSemaphores[CurrentFrame].get();
+		vk::Semaphore& PresentSemaphore = Ready2PresentSemaphores[CurrentFrame].get();
+		vk::Fence& InFlightFence = InFlightFences[CurrentFrame].get();
+
+		m_pDevice->fetchDevice().waitForFences(1, &InFlightFence, true, UINT64_MAX);
+		m_pDevice->fetchDevice().resetFences(1, &InFlightFence);
+		__draw(RenderSemaphore, PresentSemaphore, InFlightFence);
 	}
 	m_pDevice->fetchDevice().waitIdle();
 }
 
 //*********************************************************************
 //FUNCTION:
-void Window::__draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore)
+void Window::__draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence)
 {
-
 	uint32_t ImageIndex;
 	vkAcquireNextImageKHR(m_pDevice->fetchDevice(), m_pSwapchain->fetchSwapchain().get(), UINT64_MAX, vRenderSemaphore, VK_NULL_HANDLE, &ImageIndex);
 	
@@ -64,7 +77,7 @@ void Window::__draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSema
 		&vPresentSemaphore
 	};
 	VkSubmitInfo RealSubmitInfo = SubmitInfo;
-	vkQueueSubmit(m_pGraphicsQueue->fetchQueue(), 1, &RealSubmitInfo, VK_NULL_HANDLE);
+	vkQueueSubmit(m_pGraphicsQueue->fetchQueue(), 1, &RealSubmitInfo, vFence);
 
 	auto& Swapchain = m_pSwapchain->fetchSwapchain().get();
 	vk::PresentInfoKHR PresentInfo = {
