@@ -122,9 +122,9 @@ namespace LearnVulkan
 		namespace Shader
 		{
 			const std::vector<glm::vec3> Vertices = {
-				{-0.5f, -0.5f, 0.0f },
-				{ 0.5f, -0.5f, 0.0f },
-				{ 0.0f,  0.5f, 0.0f }
+				{ 0.0f, -0.5f, 0.0f },
+				{ 0.5f,  0.5f, 0.0f },
+				{-0.5f,  0.5f, 0.0f }
 			};
 
 			const std::vector<glm::vec3> Colors = {
@@ -135,14 +135,14 @@ namespace LearnVulkan
 
 			// Bindings: for different vertex objects
 			const std::vector<vk::VertexInputBindingDescription> VertexInputBindings = {
-				vk::VertexInputBindingDescription { 0, 0, vk::VertexInputRate::eVertex },
-				vk::VertexInputBindingDescription { 1, 0, vk::VertexInputRate::eVertex }
+				vk::VertexInputBindingDescription { 0, sizeof(glm::vec3), vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription { 1, sizeof(glm::vec3), vk::VertexInputRate::eVertex }
 			};
 
 			// Attributes : for different data(location) in same object
 			const std::vector<vk::VertexInputAttributeDescription> VertexInputAttributes = {
-				vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32B32Sfloat },
-				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat }
+				vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32B32Sfloat, 0 },
+				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat, 0 }
 			};
 
 			const vk::BufferCreateInfo CoordBufferInfo = {

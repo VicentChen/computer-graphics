@@ -133,8 +133,6 @@ Buffer Device::initVertexBuffer(const vk::BufferCreateInfo& vInfo, const void* v
 			break;
 		}
 	}
-
 	vk::UniqueDeviceMemory VertexMemory = m_Device->allocateMemoryUnique(MemoryAllocateInfo);
-	
 	return Buffer(std::move(VertexBuffer), std::move(VertexMemory), vData, vSize, this);
 }

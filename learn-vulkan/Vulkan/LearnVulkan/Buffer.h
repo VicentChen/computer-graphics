@@ -9,6 +9,7 @@ namespace LearnVulkan
 	public:
 		Buffer(vk::UniqueBuffer&& vBuffer, vk::UniqueDeviceMemory&& vMemory, const void* vData, uint32_t vSize, Device* vDevice) : m_Buffer(std::move(vBuffer)), m_Memory(std::move(vMemory)), m_pDevice(vDevice)
 		{
+			m_pDevice->fetchDevice().bindBufferMemory(m_Buffer.get(), m_Memory.get(), 0);
 			void* Data;
 			vkMapMemory(m_pDevice->fetchDevice(), m_Memory.get(), 0, vSize, 0, &Data);
 			memcpy(Data, vData, vSize);
