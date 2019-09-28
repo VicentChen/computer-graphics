@@ -2,13 +2,14 @@
 #include "Queue.h"
 #include "Swapchain.h"
 #include "Shader.h"
+#include "Buffer.h"
 #include <algorithm>
 
 using namespace LearnVulkan;
 
 //*********************************************************************
 //FUNCTION:
-Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, const std::vector<const char*>& vExtensionNames, const std::map<std::string, float>& vQueuePriorities) const
+Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, const std::vector<const char*>& vExtensionNames, const std::map<std::string, float>& vQueuePriorities)
 {
 	std::map<std::string, float> QueuePriorities = vQueuePriorities;
 	if (vQueuePriorities.size() == 0)
@@ -35,7 +36,7 @@ Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, c
 		vExtensionNames.data()
 	};
 
-	return Device(m_Device.createDeviceUnique(Info), m_QueueFamilyIndices);
+	return Device(m_Device.createDeviceUnique(Info), m_QueueFamilyIndices, this);
 }
 
 //*********************************************************************
@@ -114,4 +115,26 @@ Shader Device::initShader(vk::ShaderStageFlagBits vStage, const std::string& vSh
 	};
 	
 	return Shader(std::move(ShaderModule), vBindings, vAttributes, ShaderStageInfo);
+}
+
+//*********************************************************************
+//FUNCTION:
+Buffer Device::initVertexBuffer(const vk::BufferCreateInfo& vInfo, const void* vData, uint32_t vSize)
+{
+	vk::UniqueBuffer VertexBuffer = m_Device->createBufferUnique(vInfo);
+	vk::MemoryRequirements MemoryRequirements = m_Device.get().getBufferMemoryRequirements(VertexBuffer.get());
+	vk::PhysicalDeviceMemoryProperties MemoryProperties = m_pPhysicalDevice->fetchPhysicalDevice().getMemoryProperties();
+	vk::MemoryAllocateInfo MemoryAllocateInfo = { MemoryRequirements.size };
+	for (uint32_t i = 0; i < MemoryProperties.memoryTypeCount; i++)
+	{
+		if ((MemoryRequirements.memoryTypeBits & (1 << i)) && (MemoryProperties.memoryTypes[i].propertyFlags & (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)))
+		{
+			MemoryAllocateInfo.memoryTypeIndex = i;
+			break;
+		}
+	}
+
+	vk::UniqueDeviceMemory VertexMemory = m_Device->allocateMemoryUnique(MemoryAllocateInfo);
+	
+	return Buffer(std::move(VertexBuffer), std::move(VertexMemory), vData, vSize, this);
 }

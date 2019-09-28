@@ -2,13 +2,13 @@
 #include "Log.h"
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <set>
 #include <string>
 #define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.hpp>
+#include <glm/glm.hpp>
 
 #define CAST_U32I(i) static_cast<uint32_t>(i)
 #define CAST_FLT(i) static_cast<float>(i)

@@ -119,10 +119,46 @@ namespace LearnVulkan
 			};
 		}
 
-		namespace Pipeline
+		namespace Shader
 		{
-			const std::string VertexPath = "D:/Github/computer-graphics/learn-vulkan/Vulkan/LearnVulkan/Shaders/Triangle.vert.spv";
-			const std::string FragmentPath = "D:/Github/computer-graphics/learn-vulkan/Vulkan/LearnVulkan/Shaders/Triangle.frag.spv";
+			const std::vector<glm::vec3> Vertices = {
+				{-0.5f, -0.5f, 0.0f },
+				{ 0.5f, -0.5f, 0.0f },
+				{ 0.0f,  0.5f, 0.0f }
+			};
+
+			const std::vector<glm::vec3> Colors = {
+				{ 1.0f, 0.0f, 0.0f },
+				{ 0.0f, 1.0f, 0.0f },
+				{ 0.0f, 0.0f, 1.0f }
+			};
+
+			// Bindings: for different vertex objects
+			const std::vector<vk::VertexInputBindingDescription> VertexInputBindings = {
+				vk::VertexInputBindingDescription { 0, 0, vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription { 1, 0, vk::VertexInputRate::eVertex }
+			};
+
+			// Attributes : for different data(location) in same object
+			const std::vector<vk::VertexInputAttributeDescription> VertexInputAttributes = {
+				vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32B32Sfloat },
+				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat }
+			};
+
+			const vk::BufferCreateInfo CoordBufferInfo = {
+				vk::BufferCreateFlags(),
+				Vertices.size(),
+				vk::BufferUsageFlagBits::eVertexBuffer
+			};
+
+			const vk::BufferCreateInfo ColorBufferInfo = {
+				vk::BufferCreateFlags(),
+				Colors.size(),
+				vk::BufferUsageFlagBits::eVertexBuffer
+			};
+			
+			const std::string VertexPath   = "Shaders/Triangle.vert.spv";
+			const std::string FragmentPath = "Shaders/Triangle.frag.spv";
 			const std::string Entrance = "main";
 		}
 

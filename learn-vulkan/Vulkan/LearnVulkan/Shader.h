@@ -25,7 +25,7 @@ namespace LearnVulkan
 			const std::string& vShaderFilePath,
 			std::vector<vk::VertexInputBindingDescription>& vBindings,
 			std::vector<vk::VertexInputAttributeDescription>& vAttributes,
-			const std::string& vEntrance = Default::Pipeline::Entrance)
+			const std::string& vEntrance = Default::Shader::Entrance)
 		{
 			return vDevice.initShader(vStage, vShaderFilePath, vBindings, vAttributes, vEntrance);
 		}

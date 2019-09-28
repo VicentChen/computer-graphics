@@ -9,6 +9,7 @@
 #include "RenderPass.h"
 #include "FrameBuffer.h"
 #include "CommandPool.h"
+#include "Buffer.h"
 
 using namespace LearnVulkan;
 
@@ -24,8 +25,8 @@ int main(int argc, char* argv[])
 	Queue& present_queue = graphics_queue;
 	Swapchain swapchain = device.initSwapchain(physical_device, surface);
 	
-	Shader vert_shader = device.initShader(vk::ShaderStageFlagBits::eVertex, Default::Pipeline::VertexPath, {}, {}, Default::Pipeline::Entrance);
-	Shader frag_shader = device.initShader(vk::ShaderStageFlagBits::eFragment, Default::Pipeline::FragmentPath, {}, {}, Default::Pipeline::Entrance);
+	Shader vert_shader = device.initShader(vk::ShaderStageFlagBits::eVertex, Default::Shader::VertexPath, Default::Shader::VertexInputBindings, Default::Shader::VertexInputAttributes, Default::Shader::Entrance);
+	Shader frag_shader = device.initShader(vk::ShaderStageFlagBits::eFragment, Default::Shader::FragmentPath, {}, {}, Default::Shader::Entrance);
 	RenderPass render_pass(&device, &swapchain);
 	render_pass.constructRenderPass();
 	FrameBuffer framebuffer(&device, &swapchain, &render_pass);
@@ -36,7 +37,11 @@ int main(int argc, char* argv[])
 	pipeline.attachShader(frag_shader);
 	pipeline.constructGraphicsPipeline();
 
-	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline);
+	Buffer coord_buffer = device.initVertexBuffer(Default::Shader::CoordBufferInfo, Default::Shader::Vertices.data(), Default::Shader::Vertices.size() * sizeof(glm::vec3));
+	Buffer color_buffer = device.initVertexBuffer(Default::Shader::ColorBufferInfo, Default::Shader::Colors.data(), Default::Shader::Colors.size() * sizeof(glm::vec3));
+	std::vector<Buffer*> buffers = { &coord_buffer, &color_buffer };
+	
+	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline, buffers);
 	command_pool.constructCommandPool();
 	command_pool.constructCommandBuffers();
 	
