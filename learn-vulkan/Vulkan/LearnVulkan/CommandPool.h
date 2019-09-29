@@ -19,25 +19,23 @@ namespace LearnVulkan
 			Queue* vGraphicsQueue,
 			RenderPass* vRenderPass,
 			FrameBuffer* vFrameBuffer,
-			Pipeline* vPipeline,
-			std::vector<Buffer*> vBuffers)
+			Pipeline* vPipeline)
 		: m_pDevice(vDevice),
 		m_pSwapchain(vSwapchain),
 		m_pGraphicsQueue(vGraphicsQueue),
 		m_pRenderPass(vRenderPass),
 		m_pFrameBuffer(vFrameBuffer),
-		m_pPipeline(vPipeline),
-		m_Buffers(vBuffers){}
+		m_pPipeline(vPipeline){}
 		
 		void constructCommandPool();
-		void constructCommandBuffers();
+		void constructCommandBuffers(std::vector<Buffer*>& vBuffers);
+		vk::CommandPool fetchCommandPool() { return m_CommandPool.get(); }
 		vk::CommandBuffer& fetchCommandBufferAt(int vIndex) { return m_CommandBuffers[vIndex].get(); }
 		
 	private:
 
 		vk::UniqueCommandPool m_CommandPool;
 		std::vector<vk::UniqueCommandBuffer> m_CommandBuffers;
-		std::vector<Buffer*> m_Buffers;
 		
 		Device* m_pDevice = nullptr;
 		Queue* m_pGraphicsQueue = nullptr;

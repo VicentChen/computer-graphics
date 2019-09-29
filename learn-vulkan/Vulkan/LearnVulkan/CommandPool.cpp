@@ -16,8 +16,8 @@ void CommandPool::constructCommandPool()
 
 //*********************************************************************
 //FUNCTION:
-void CommandPool::constructCommandBuffers()
-{
+void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vBuffers)
+{	
 	vk::CommandBufferAllocateInfo AllocateInfo = {
 		m_CommandPool.get(),
 		vk::CommandBufferLevel::ePrimary,
@@ -29,9 +29,9 @@ void CommandPool::constructCommandBuffers()
 
 	std::vector<vk::Buffer> Buffers;
 	std::vector<vk::DeviceSize> Offsets;
-	for (auto& Buffer : m_Buffers)
+	for (auto pBuffer : vBuffers)
 	{
-		Buffers.emplace_back(Buffer->fetchBuffer());
+		Buffers.emplace_back(pBuffer->fetchBuffer());
 		Offsets.emplace_back(0);
 	}
 	

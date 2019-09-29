@@ -144,18 +144,6 @@ namespace LearnVulkan
 				vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32B32Sfloat, 0 },
 				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat, 0 }
 			};
-
-			const vk::BufferCreateInfo CoordBufferInfo = {
-				vk::BufferCreateFlags(),
-				Vertices.size(),
-				vk::BufferUsageFlagBits::eVertexBuffer
-			};
-
-			const vk::BufferCreateInfo ColorBufferInfo = {
-				vk::BufferCreateFlags(),
-				Colors.size(),
-				vk::BufferUsageFlagBits::eVertexBuffer
-			};
 			
 			const std::string VertexPath   = "Shaders/Triangle.vert.spv";
 			const std::string FragmentPath = "Shaders/Triangle.frag.spv";

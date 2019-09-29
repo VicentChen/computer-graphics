@@ -37,13 +37,14 @@ int main(int argc, char* argv[])
 	pipeline.attachShader(frag_shader);
 	pipeline.constructGraphicsPipeline();
 
-	Buffer coord_buffer = device.initVertexBuffer(Default::Shader::CoordBufferInfo, Default::Shader::Vertices.data(), Default::Shader::Vertices.size() * sizeof(glm::vec3));
-	Buffer color_buffer = device.initVertexBuffer(Default::Shader::ColorBufferInfo, Default::Shader::Colors.data(), Default::Shader::Colors.size() * sizeof(glm::vec3));
-	std::vector<Buffer*> buffers = { &coord_buffer, &color_buffer };
 	
-	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline, buffers);
+	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline);
 	command_pool.constructCommandPool();
-	command_pool.constructCommandBuffers();
+	
+	Buffer coord_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Vertices.data(), Default::Shader::Vertices.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	Buffer color_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Colors.data(), Default::Shader::Colors.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	std::vector<Buffer*> buffers = { &coord_buffer, &color_buffer };
+	command_pool.constructCommandBuffers(buffers);
 	
 	window.init(&device, &swapchain, &graphics_queue, &present_queue, &framebuffer, &command_pool);
 	window.display();

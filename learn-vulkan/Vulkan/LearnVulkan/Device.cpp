@@ -3,6 +3,7 @@
 #include "Swapchain.h"
 #include "Shader.h"
 #include "Buffer.h"
+#include "CommandPool.h"
 #include <algorithm>
 
 using namespace LearnVulkan;
@@ -119,20 +120,80 @@ Shader Device::initShader(vk::ShaderStageFlagBits vStage, const std::string& vSh
 
 //*********************************************************************
 //FUNCTION:
-Buffer Device::initVertexBuffer(const vk::BufferCreateInfo& vInfo, const void* vData, uint32_t vSize)
+Buffer Device::initBuffer(CommandPool* vCommandPool, Queue* vGraphicsQueue, const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags)
 {
-	vk::UniqueBuffer VertexBuffer = m_Device->createBufferUnique(vInfo);
-	vk::MemoryRequirements MemoryRequirements = m_Device.get().getBufferMemoryRequirements(VertexBuffer.get());
+	Buffer buffer = __createBuffer(vData, vSize, vUsageFlags, vPropertyFlags);
+	
+	if (vPropertyFlags & vk::MemoryPropertyFlagBits::eHostVisible)
+	{
+		__transferData(vData, vSize, buffer);
+	}
+	else
+	{
+		Buffer StagingBuffer = __createBuffer(vData, vSize, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		__transferData(vData, vSize, StagingBuffer);
+		vk::CommandBufferAllocateInfo AllocateInfo = {
+			vCommandPool->fetchCommandPool(),
+			vk::CommandBufferLevel::ePrimary,
+			1
+		};
+
+		std::vector<vk::UniqueCommandBuffer> UniqueCommandBuffers = m_Device->allocateCommandBuffersUnique(AllocateInfo);
+		vk::UniqueCommandBuffer UniqueCommandBuffer = std::move(UniqueCommandBuffers[0]);
+		vk::CommandBuffer CommandBuffer = UniqueCommandBuffer.get();
+		vk::CommandBufferBeginInfo BeginInfo = { vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+		CommandBuffer.begin(BeginInfo);
+		vk::BufferCopy CopyRegion = { 0, 0, buffer.size() };
+		CommandBuffer.copyBuffer(StagingBuffer.fetchBuffer(), buffer.fetchBuffer(), CopyRegion);
+		CommandBuffer.end();
+
+		vk::SubmitInfo SubmitInfo = {
+			0, nullptr, nullptr,
+			1, &CommandBuffer,
+			0, nullptr
+		};
+		vGraphicsQueue->fetchQueue().submit(SubmitInfo, vk::Fence(nullptr));
+		vGraphicsQueue->fetchQueue().waitIdle();
+	}
+
+	return buffer;
+}
+
+//*********************************************************************
+//FUNCTION:
+Buffer Device::__createBuffer(const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags)
+{
+	// create buffer
+	vk::BufferCreateInfo CreateInfo = {
+		vk::BufferCreateFlags(),
+		vSize,
+		vUsageFlags
+	};
+	vk::UniqueBuffer buffer = m_Device->createBufferUnique(CreateInfo);
+
+	// allocate memory
+	vk::MemoryRequirements MemoryRequirements = m_Device.get().getBufferMemoryRequirements(buffer.get());
 	vk::PhysicalDeviceMemoryProperties MemoryProperties = m_pPhysicalDevice->fetchPhysicalDevice().getMemoryProperties();
 	vk::MemoryAllocateInfo MemoryAllocateInfo = { MemoryRequirements.size };
 	for (uint32_t i = 0; i < MemoryProperties.memoryTypeCount; i++)
 	{
-		if ((MemoryRequirements.memoryTypeBits & (1 << i)) && (MemoryProperties.memoryTypes[i].propertyFlags & (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)))
+		if ((MemoryRequirements.memoryTypeBits & (1 << i)) && (MemoryProperties.memoryTypes[i].propertyFlags & vPropertyFlags) == vPropertyFlags)
 		{
 			MemoryAllocateInfo.memoryTypeIndex = i;
 			break;
 		}
 	}
-	vk::UniqueDeviceMemory VertexMemory = m_Device->allocateMemoryUnique(MemoryAllocateInfo);
-	return Buffer(std::move(VertexBuffer), std::move(VertexMemory), vData, vSize, this);
+	vk::UniqueDeviceMemory Memory = m_Device->allocateMemoryUnique(MemoryAllocateInfo);
+	m_Device->bindBufferMemory(buffer.get(), Memory.get(), 0);
+	return Buffer(std::move(buffer), std::move(Memory), vData, vSize, this);
+}
+
+//*********************************************************************
+//FUNCTION:
+void Device::__transferData(const void* vData, uint32_t vSize, Buffer& vBuffer)
+{
+	void* Data;
+	vkMapMemory(m_Device.get(), vBuffer.fetchMemory(), 0, vSize, 0, &Data);
+	memcpy(Data, vData, vSize);
+	vkUnmapMemory(m_Device.get(), vBuffer.fetchMemory());
 }
