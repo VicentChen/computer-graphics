@@ -37,14 +37,14 @@ int main(int argc, char* argv[])
 	pipeline.attachShader(frag_shader);
 	pipeline.constructGraphicsPipeline();
 
-	
 	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline);
 	command_pool.constructCommandPool();
 	
 	Buffer coord_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Vertices.data(), Default::Shader::Vertices.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	Buffer color_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Colors.data(), Default::Shader::Colors.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-	std::vector<Buffer*> buffers = { &coord_buffer, &color_buffer };
-	command_pool.constructCommandBuffers(buffers);
+	Buffer index_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Indices.data(), Default::Shader::Indices.size() * sizeof(uint16_t), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	std::vector<Buffer*> vertex_buffers = { &coord_buffer, &color_buffer };
+	command_pool.constructCommandBuffers(vertex_buffers, &index_buffer);
 	
 	window.init(&device, &swapchain, &graphics_queue, &present_queue, &framebuffer, &command_pool);
 	window.display();

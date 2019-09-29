@@ -16,7 +16,7 @@ void CommandPool::constructCommandPool()
 
 //*********************************************************************
 //FUNCTION:
-void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vBuffers)
+void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vVertexBuffers, Buffer* vIndexBuffer)
 {	
 	vk::CommandBufferAllocateInfo AllocateInfo = {
 		m_CommandPool.get(),
@@ -27,11 +27,11 @@ void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vBuffers)
 
 	vk::ClearValue Value = { Default::RenderPass::BLACK };
 
-	std::vector<vk::Buffer> Buffers;
+	std::vector<vk::Buffer> VertexBuffers;
 	std::vector<vk::DeviceSize> Offsets;
-	for (auto pBuffer : vBuffers)
+	for (auto pBuffer : vVertexBuffers)
 	{
-		Buffers.emplace_back(pBuffer->fetchBuffer());
+		VertexBuffers.emplace_back(pBuffer->fetchBuffer());
 		Offsets.emplace_back(0);
 	}
 	
@@ -51,8 +51,9 @@ void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vBuffers)
 		m_CommandBuffers[i]->beginRenderPass(RenderPassBeginInfo, vk::SubpassContents::eInline);
 
 		m_CommandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, m_pPipeline->fetchGraphicsPipeline());
-		m_CommandBuffers[i]->bindVertexBuffers(0, Buffers, Offsets);
-		m_CommandBuffers[i]->draw(3, 1, 0, 0);
+		m_CommandBuffers[i]->bindVertexBuffers(0, VertexBuffers, Offsets);
+		m_CommandBuffers[i]->bindIndexBuffer(vIndexBuffer->fetchBuffer(), 0, vk::IndexType::eUint16);
+		m_CommandBuffers[i]->drawIndexed(static_cast<uint32_t>(vIndexBuffer->size() / sizeof(uint16_t)), 1, 0, 0, 0);
 
 		m_CommandBuffers[i]->endRenderPass();
 		m_CommandBuffers[i]->end();

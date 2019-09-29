@@ -122,16 +122,20 @@ namespace LearnVulkan
 		namespace Shader
 		{
 			const std::vector<glm::vec3> Vertices = {
-				{ 0.0f, -0.5f, 0.0f },
+				{-0.5f, -0.5f, 0.0f },
+				{ 0.5f, -0.5f, 0.0f },
 				{ 0.5f,  0.5f, 0.0f },
-				{-0.5f,  0.5f, 0.0f }
+				{ -0.5f, 0.5f, 0.0f }
 			};
 
 			const std::vector<glm::vec3> Colors = {
 				{ 1.0f, 0.0f, 0.0f },
 				{ 0.0f, 1.0f, 0.0f },
-				{ 0.0f, 0.0f, 1.0f }
+				{ 0.0f, 0.0f, 1.0f },
+				{ 1.0f, 1.0f, 1.0f }
 			};
+
+			const std::vector<uint16_t> Indices = { 0, 1, 2, 2, 3, 0 };
 
 			// Bindings: for different vertex objects
 			const std::vector<vk::VertexInputBindingDescription> VertexInputBindings = {

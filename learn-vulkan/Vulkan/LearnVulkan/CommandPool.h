@@ -28,7 +28,7 @@ namespace LearnVulkan
 		m_pPipeline(vPipeline){}
 		
 		void constructCommandPool();
-		void constructCommandBuffers(std::vector<Buffer*>& vBuffers);
+		void constructCommandBuffers(std::vector<Buffer*>& vVertexBuffers, Buffer* vIndexBuffer);
 		vk::CommandPool fetchCommandPool() { return m_CommandPool.get(); }
 		vk::CommandBuffer& fetchCommandBufferAt(int vIndex) { return m_CommandBuffers[vIndex].get(); }
 		
