@@ -13,13 +13,17 @@ namespace LearnVulkan
 		Pipeline(Device* vDevice, Swapchain* vSwapchain, RenderPass* vRenderPass) : m_pDevice(vDevice), m_pSwapchain(vSwapchain), m_pRenderPass(vRenderPass) {}
 
 		vk::Pipeline fetchGraphicsPipeline() { return m_GraphicsPipeline.get(); }
+		vk::PipelineLayout fetchGraphicsPipelineLayout() { return m_GraphicsPipelineLayout.get(); }
 		void attachShader(Shader& vShader) { m_Shaders.emplace_back(&vShader); }
+		void attachDescriptor(vk::DescriptorSetLayout& vDescriptors) { m_Layout = vDescriptors; }
 		void constructGraphicsPipeline();
 		
 	private:
 		std::vector<Shader*> m_Shaders;
+		vk::DescriptorSetLayout m_Layout;
 
 		vk::UniquePipeline m_GraphicsPipeline;
+		vk::UniquePipelineLayout m_GraphicsPipelineLayout;
 		
 		Device* m_pDevice = nullptr;
 		Swapchain* m_pSwapchain = nullptr;

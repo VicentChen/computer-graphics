@@ -7,6 +7,7 @@
 #include "FrameBuffer.h"
 #include "Pipeline.h"
 #include "Buffer.h"
+#include "DescriptorPool.h"
 
 namespace LearnVulkan
 {
@@ -19,13 +20,15 @@ namespace LearnVulkan
 			Queue* vGraphicsQueue,
 			RenderPass* vRenderPass,
 			FrameBuffer* vFrameBuffer,
-			Pipeline* vPipeline)
+			Pipeline* vPipeline,
+			DescriptorPool* vDescriptorPool)
 		: m_pDevice(vDevice),
 		m_pSwapchain(vSwapchain),
 		m_pGraphicsQueue(vGraphicsQueue),
 		m_pRenderPass(vRenderPass),
 		m_pFrameBuffer(vFrameBuffer),
-		m_pPipeline(vPipeline){}
+		m_pPipeline(vPipeline),
+		m_pDescriptorPool(vDescriptorPool){}
 		
 		void constructCommandPool();
 		void constructCommandBuffers(std::vector<Buffer*>& vVertexBuffers, Buffer* vIndexBuffer);
@@ -43,6 +46,7 @@ namespace LearnVulkan
 		RenderPass* m_pRenderPass = nullptr;
 		FrameBuffer* m_pFrameBuffer = nullptr;
 		Pipeline* m_pPipeline = nullptr;
+		DescriptorPool* m_pDescriptorPool = nullptr;
 
 		friend class Window;
 	};

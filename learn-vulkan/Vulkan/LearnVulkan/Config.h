@@ -159,5 +159,29 @@ namespace LearnVulkan
 			const vk::ClearColorValue BLACK = { std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 1.0f } };
 			const vk::ClearColorValue WHITE = { std::array<float, 4>{ 1.0f, 1.0f, 1.0f, 1.0f } };
 		}
+
+		namespace Pipeline
+		{			
+			struct UniformTansfromMatrices
+			{
+				glm::mat4 Model;
+				glm::mat4 View;
+				glm::mat4 Proj;
+
+				static vk::DescriptorSetLayoutBinding getDescriptorSetLayoutBinding()
+				{
+					return vk::DescriptorSetLayoutBinding{
+						0,
+						vk::DescriptorType::eUniformBuffer,
+						1,
+						vk::ShaderStageFlagBits::eVertex
+					};
+				}
+			};
+			
+			const std::vector<vk::DescriptorSetLayoutBinding> Descriptors = {
+				UniformTansfromMatrices::getDescriptorSetLayoutBinding()
+			};
+		}
 	}
 }

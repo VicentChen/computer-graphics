@@ -33,6 +33,7 @@ namespace LearnVulkan
 	class Shader;
 	class Buffer;
 	class CommandPool;
+	class DescriptorPool;
 	
 	class Device
 	{
@@ -41,9 +42,13 @@ namespace LearnVulkan
 
 		Queue initQueue(const std::string& vName, uint32_t vCount = 1);
 		Swapchain initSwapchain(PhysicalDevice& vPhysicalDevice, Surface& vSurface, uint32_t vWidth = Default::Window::WIDTH, uint32_t vHeight = Default::Window::HEIGHT, vk::ImageViewCreateInfo vImageViewCreateInfo = Default::Swapchain::ImageViewCreateInfo);
+		DescriptorPool initDescriptorPool();
 		Shader initShader(vk::ShaderStageFlagBits vStage, const std::string& vShaderFilePath, const std::vector<vk::VertexInputBindingDescription>& vBindings = {}, const std::vector<vk::VertexInputAttributeDescription>& vAttributes = {}, const std::string& vEntrance = Default::Shader::Entrance);
 		Buffer initBuffer(CommandPool* vCommandPool, Queue* vGraphicsQueue, const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags);
+		void transferData(const void* vData, uint32_t vSize, Buffer& vBuffer);
 
+		void setSwapchainPtr(Swapchain* vSwapchain) { m_pSwapchain = vSwapchain; }
+		
 		static Device createByPhysicalDevice(PhysicalDevice& vPhysicalDevice,
 			const std::vector<const char*>& vLayerNames = Default::PhysicalDevice::LayerNames,
 			const std::vector<const char*>& vExtensionNames = Default::PhysicalDevice::ExtensionNames,
@@ -51,7 +56,6 @@ namespace LearnVulkan
 
 	private:
 		Buffer __createBuffer(const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags);
-		void __transferData(const void* vData, uint32_t vSize, Buffer& vBuffer);
 		Device(vk::UniqueDevice&& vDevice, const std::map<std::string, uint32_t>& vQueueFamilyIndices, PhysicalDevice* vPhysicalDevice) : m_Device(std::move(vDevice)), m_QueueFamilyIndices(vQueueFamilyIndices), m_pPhysicalDevice(vPhysicalDevice) {}
 
 		vk::UniqueDevice m_Device;

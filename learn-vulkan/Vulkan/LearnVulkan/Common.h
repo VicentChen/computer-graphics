@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
 #define CAST_U32I(i) static_cast<uint32_t>(i)
@@ -17,8 +18,14 @@
 
 namespace LearnVulkan
 {
+
 	inline bool isVkSuccess(vk::Result vResult) { return vResult == vk::Result::eSuccess; }
 
+	inline void windowResizeCallback(GLFWwindow* vWindow, int Width, int Height)
+	{
+		
+	}
+	
 	inline VkBool32 debugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/, uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
 	{
 		switch (flags)

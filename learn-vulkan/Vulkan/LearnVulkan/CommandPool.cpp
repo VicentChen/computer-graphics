@@ -53,6 +53,7 @@ void CommandPool::constructCommandBuffers(std::vector<Buffer*>& vVertexBuffers, 
 		m_CommandBuffers[i]->bindPipeline(vk::PipelineBindPoint::eGraphics, m_pPipeline->fetchGraphicsPipeline());
 		m_CommandBuffers[i]->bindVertexBuffers(0, VertexBuffers, Offsets);
 		m_CommandBuffers[i]->bindIndexBuffer(vIndexBuffer->fetchBuffer(), 0, vk::IndexType::eUint16);
+		m_CommandBuffers[i]->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pPipeline->fetchGraphicsPipelineLayout(), 0, m_pDescriptorPool->fetchDescriptorSets()[i], nullptr);
 		m_CommandBuffers[i]->drawIndexed(static_cast<uint32_t>(vIndexBuffer->size() / sizeof(uint16_t)), 1, 0, 0, 0);
 
 		m_CommandBuffers[i]->endRenderPass();

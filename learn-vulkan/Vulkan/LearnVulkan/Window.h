@@ -19,7 +19,8 @@ namespace LearnVulkan
 		GLFWwindow* getWindowPtr() { return m_pWindow; }
 		
 	private:
-		void __draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence);
+		void __draw(int vCurrentFrame, vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence);
+		void __update(int vCurrentFrame);
 		
 		GLFWwindow* m_pWindow = nullptr;
 		Device* m_pDevice = nullptr;

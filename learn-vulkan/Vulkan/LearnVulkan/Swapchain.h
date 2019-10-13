@@ -1,15 +1,21 @@
 #pragma once
 #include "Device.h"
 #include "Surface.h"
+#include "Buffer.h"
 
 namespace LearnVulkan
 {
+	class CommandPool;
+	
 	class Swapchain
 	{
 	public:
-
+		void attachUniformBuffers(CommandPool* vCommandPool, Queue* vGraphicsQueue);
+		
 		vk::UniqueSwapchainKHR& fetchSwapchain() { return m_Swapchain; }
+		std::vector<Buffer>& fetchUniformBuffers() { return m_UniformBuffers; }
 		std::vector<vk::UniqueImageView>& fetchImageViews() { return m_SwapchainImageViews; }
+		void transfer2UnifromBuffer(const void* vData, uint32_t vSize, int vIndex);
 		
 		const vk::SurfaceFormatKHR getFormat() const { return m_Format; }
 		const vk::Extent2D getExtent() const { return m_Extent; }
@@ -29,6 +35,7 @@ namespace LearnVulkan
 		vk::UniqueSwapchainKHR m_Swapchain;
 		std::vector<vk::Image> m_SwapchainImages;
 		std::vector<vk::UniqueImageView> m_SwapchainImageViews;
+		std::vector<Buffer> m_UniformBuffers;
 
 		vk::Extent2D m_Extent;
 		vk::SurfaceFormatKHR m_Format;

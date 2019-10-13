@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Buffer.h"
 #include "CommandPool.h"
+#include "DescriptorPool.h"
 #include <algorithm>
 
 using namespace LearnVulkan;
@@ -99,6 +100,24 @@ Swapchain Device::initSwapchain(PhysicalDevice& vPhysicalDevice, Surface& vSurfa
 
 //*********************************************************************
 //FUNCTION:
+DescriptorPool Device::initDescriptorPool()
+{
+	auto SwapchainSize = CAST_U32I(m_pSwapchain->fetchImageViews().size());
+	vk::DescriptorPoolSize Size = { vk::DescriptorType::eUniformBuffer, SwapchainSize };
+
+	vk::DescriptorPoolCreateInfo PoolCreateInfo = {
+		vk::DescriptorPoolCreateFlags(),
+		SwapchainSize,
+		1,
+		&Size
+	};
+
+	DescriptorPool Pool(m_Device->createDescriptorPoolUnique(PoolCreateInfo), this, m_pSwapchain);
+	return Pool;
+}
+
+//*********************************************************************
+//FUNCTION:
 Shader Device::initShader(vk::ShaderStageFlagBits vStage, const std::string& vShaderFilePath, const std::vector<vk::VertexInputBindingDescription>& vBindings, const std::vector<vk::VertexInputAttributeDescription>& vAttributes, const std::string& vEntrance)
 {
 	std::vector<char> ShaderFile = readFile(vShaderFilePath);
@@ -123,39 +142,40 @@ Shader Device::initShader(vk::ShaderStageFlagBits vStage, const std::string& vSh
 Buffer Device::initBuffer(CommandPool* vCommandPool, Queue* vGraphicsQueue, const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags)
 {
 	Buffer buffer = __createBuffer(vData, vSize, vUsageFlags, vPropertyFlags);
-	
-	if (vPropertyFlags & vk::MemoryPropertyFlagBits::eHostVisible)
+	if (vData)
 	{
-		__transferData(vData, vSize, buffer);
+		if (vPropertyFlags & vk::MemoryPropertyFlagBits::eHostVisible)
+		{
+			transferData(vData, vSize, buffer);
+		}
+		else
+		{
+			Buffer StagingBuffer = __createBuffer(vData, vSize, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+			transferData(vData, vSize, StagingBuffer);
+			vk::CommandBufferAllocateInfo AllocateInfo = {
+				vCommandPool->fetchCommandPool(),
+				vk::CommandBufferLevel::ePrimary,
+				1
+			};
+
+			std::vector<vk::UniqueCommandBuffer> UniqueCommandBuffers = m_Device->allocateCommandBuffersUnique(AllocateInfo);
+			vk::UniqueCommandBuffer UniqueCommandBuffer = std::move(UniqueCommandBuffers[0]);
+			vk::CommandBuffer CommandBuffer = UniqueCommandBuffer.get();
+			vk::CommandBufferBeginInfo BeginInfo = { vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+			CommandBuffer.begin(BeginInfo);
+			vk::BufferCopy CopyRegion = { 0, 0, buffer.size() };
+			CommandBuffer.copyBuffer(StagingBuffer.fetchBuffer(), buffer.fetchBuffer(), CopyRegion);
+			CommandBuffer.end();
+
+			vk::SubmitInfo SubmitInfo = {
+				0, nullptr, nullptr,
+				1, &CommandBuffer,
+				0, nullptr
+			};
+			vGraphicsQueue->fetchQueue().submit(SubmitInfo, vk::Fence(nullptr));
+			vGraphicsQueue->fetchQueue().waitIdle();
+		}
 	}
-	else
-	{
-		Buffer StagingBuffer = __createBuffer(vData, vSize, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-		__transferData(vData, vSize, StagingBuffer);
-		vk::CommandBufferAllocateInfo AllocateInfo = {
-			vCommandPool->fetchCommandPool(),
-			vk::CommandBufferLevel::ePrimary,
-			1
-		};
-
-		std::vector<vk::UniqueCommandBuffer> UniqueCommandBuffers = m_Device->allocateCommandBuffersUnique(AllocateInfo);
-		vk::UniqueCommandBuffer UniqueCommandBuffer = std::move(UniqueCommandBuffers[0]);
-		vk::CommandBuffer CommandBuffer = UniqueCommandBuffer.get();
-		vk::CommandBufferBeginInfo BeginInfo = { vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
-		CommandBuffer.begin(BeginInfo);
-		vk::BufferCopy CopyRegion = { 0, 0, buffer.size() };
-		CommandBuffer.copyBuffer(StagingBuffer.fetchBuffer(), buffer.fetchBuffer(), CopyRegion);
-		CommandBuffer.end();
-
-		vk::SubmitInfo SubmitInfo = {
-			0, nullptr, nullptr,
-			1, &CommandBuffer,
-			0, nullptr
-		};
-		vGraphicsQueue->fetchQueue().submit(SubmitInfo, vk::Fence(nullptr));
-		vGraphicsQueue->fetchQueue().waitIdle();
-	}
-
 	return buffer;
 }
 
@@ -190,7 +210,7 @@ Buffer Device::__createBuffer(const void* vData, uint32_t vSize, vk::BufferUsage
 
 //*********************************************************************
 //FUNCTION:
-void Device::__transferData(const void* vData, uint32_t vSize, Buffer& vBuffer)
+void Device::transferData(const void* vData, uint32_t vSize, Buffer& vBuffer)
 {
 	void* Data;
 	vkMapMemory(m_Device.get(), vBuffer.fetchMemory(), 0, vSize, 0, &Data);

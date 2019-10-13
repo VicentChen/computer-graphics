@@ -1,4 +1,6 @@
 #include "Window.h"
+#include <chrono>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace LearnVulkan;
 
@@ -8,6 +10,9 @@ Window::Window(int vWidth, int vHeight, const char* vTitle)
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	m_pWindow = glfwCreateWindow(vWidth, vHeight, vTitle, nullptr, nullptr);
+
+	glfwSetWindowUserPointer(m_pWindow, this);
+	glfwSetFramebufferSizeCallback(m_pWindow, windowResizeCallback);
 }
 
 Window::~Window()
@@ -53,20 +58,21 @@ void Window::display()
 
 		m_pDevice->fetchDevice().waitForFences(1, &InFlightFence, true, UINT64_MAX);
 		m_pDevice->fetchDevice().resetFences(1, &InFlightFence);
-		__draw(RenderSemaphore, PresentSemaphore, InFlightFence);
+		__draw(CurrentFrame, RenderSemaphore, PresentSemaphore, InFlightFence);
 	}
 	m_pDevice->fetchDevice().waitIdle();
 }
 
 //*********************************************************************
 //FUNCTION:
-void Window::__draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence)
+void Window::__draw(int vCurrentFrame, vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSemaphore, vk::Fence& vFence)
 {
 	uint32_t ImageIndex;
 	vkAcquireNextImageKHR(m_pDevice->fetchDevice(), m_pSwapchain->fetchSwapchain().get(), UINT64_MAX, vRenderSemaphore, VK_NULL_HANDLE, &ImageIndex);
 	
 	vk::PipelineStageFlags Stages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 	vk::CommandBuffer& Buffer = m_pCommandPool->fetchCommandBufferAt(ImageIndex);
+	__update(vCurrentFrame);
 	vk::SubmitInfo SubmitInfo = {
 		1,
 		&vRenderSemaphore,
@@ -88,4 +94,21 @@ void Window::__draw(vk::Semaphore& vRenderSemaphore, vk::Semaphore& vPresentSema
 		&ImageIndex
 	};
 	m_pPresentQueue->fetchQueue().presentKHR(PresentInfo);
+}
+
+//*********************************************************************
+//FUNCTION:
+void Window::__update(int vCurrentFrame)
+{
+	static auto StartTime = std::chrono::high_resolution_clock::now();
+	auto CurrentTime = std::chrono::high_resolution_clock::now();
+	float Time = std::chrono::duration<float, std::chrono::seconds::period>(CurrentTime - StartTime).count();
+
+	Default::Pipeline::UniformTansfromMatrices T;
+	T.Model = glm::rotate(glm::mat4(1.0f), Time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
+	T.View  = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	T.Proj  = glm::perspective(glm::radians(45.0f), m_pSwapchain->getExtent().width / (float)m_pSwapchain->getExtent().height, 0.1f, 10.0f);
+	T.Proj[1][1] *= -1;
+	
+	m_pSwapchain->transfer2UnifromBuffer(&T, sizeof(T), vCurrentFrame);
 }

@@ -56,7 +56,7 @@ void Pipeline::constructGraphicsPipeline()
 		false,
 		vk::PolygonMode::eFill,
 		vk::CullModeFlagBits::eBack,
-		vk::FrontFace::eClockwise,
+		vk::FrontFace::eCounterClockwise,
 		false,
 		0,
 		0,
@@ -99,8 +99,12 @@ void Pipeline::constructGraphicsPipeline()
 		DynamicStates.data()
 	};
 
-	vk::PipelineLayoutCreateInfo LayoutCreateInfo = {};
-	vk::UniquePipelineLayout Layout = m_pDevice->fetchDevice().createPipelineLayoutUnique(LayoutCreateInfo);
+	vk::PipelineLayoutCreateInfo LayoutCreateInfo = {
+		vk::PipelineLayoutCreateFlags(),
+		1,
+		&m_Layout
+	};
+	m_GraphicsPipelineLayout = m_pDevice->fetchDevice().createPipelineLayoutUnique(LayoutCreateInfo);
 
 	vk::GraphicsPipelineCreateInfo Info = {
 		vk::PipelineCreateFlags(),
@@ -115,7 +119,7 @@ void Pipeline::constructGraphicsPipeline()
 		nullptr,
 		&ColorBlendCreateInfo,
 		nullptr,
-		Layout.get(),
+		m_GraphicsPipelineLayout.get(),
 		m_pRenderPass->fetchRenderPass()
 	};
 
