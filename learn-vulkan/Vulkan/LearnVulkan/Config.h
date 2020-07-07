@@ -81,6 +81,14 @@ namespace LearnVulkan
 			const std::vector<const char*> ExtensionNames = {
 				VK_KHR_SWAPCHAIN_EXTENSION_NAME
 			};
+
+			inline vk::PhysicalDeviceFeatures getFeatures()
+			{
+				vk::PhysicalDeviceFeatures Features;
+				Features.setSamplerAnisotropy(true);
+				return Features;
+			}
+			
 		}
 
 		namespace Device
@@ -135,18 +143,27 @@ namespace LearnVulkan
 				{ 1.0f, 1.0f, 1.0f }
 			};
 
+			const std::vector<glm::vec2> TexCoords = {
+				 {1.0f, 0.0f},
+				 {0.0f, 0.0f},
+				 {0.0f, 1.0f},
+				 {1.0f, 1.0f}
+			};
+			
 			const std::vector<uint16_t> Indices = { 0, 1, 2, 2, 3, 0 };
 
 			// Bindings: for different vertex objects
 			const std::vector<vk::VertexInputBindingDescription> VertexInputBindings = {
 				vk::VertexInputBindingDescription { 0, sizeof(glm::vec3), vk::VertexInputRate::eVertex },
-				vk::VertexInputBindingDescription { 1, sizeof(glm::vec3), vk::VertexInputRate::eVertex }
+				vk::VertexInputBindingDescription { 1, sizeof(glm::vec3), vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription { 2, sizeof(glm::vec2), vk::VertexInputRate::eVertex }
 			};
 
 			// Attributes : for different data(location) in same object
 			const std::vector<vk::VertexInputAttributeDescription> VertexInputAttributes = {
 				vk::VertexInputAttributeDescription { 0, 0, vk::Format::eR32G32B32Sfloat, 0 },
-				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat, 0 }
+				vk::VertexInputAttributeDescription { 1, 1, vk::Format::eR32G32B32Sfloat, 0 },
+				vk::VertexInputAttributeDescription { 2, 2, vk::Format::eR32G32Sfloat, 0},
 			};
 			
 			const std::string VertexPath   = "Shaders/Triangle.vert.spv";
@@ -178,9 +195,17 @@ namespace LearnVulkan
 					};
 				}
 			};
+
+			inline vk::DescriptorSetLayoutBinding SamplerLayoutBinding = {
+				1,
+				vk::DescriptorType::eCombinedImageSampler,
+				1,
+				vk::ShaderStageFlagBits::eFragment
+			};
 			
 			const std::vector<vk::DescriptorSetLayoutBinding> Descriptors = {
-				UniformTansfromMatrices::getDescriptorSetLayoutBinding()
+				UniformTansfromMatrices::getDescriptorSetLayoutBinding(),
+				SamplerLayoutBinding
 			};
 		}
 	}

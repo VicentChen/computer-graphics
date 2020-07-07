@@ -11,6 +11,7 @@
 #include "CommandPool.h"
 #include "Buffer.h"
 #include "DescriptorPool.h"
+#include "Image.h"
 
 using namespace LearnVulkan;
 
@@ -40,7 +41,7 @@ int main(int argc, char* argv[])
 	Pipeline pipeline(&device, &swapchain, &render_pass);
 	pipeline.attachShader(vert_shader);
 	pipeline.attachShader(frag_shader);
-	pipeline.attachDescriptor(layout.get());
+	pipeline.attachDescriptors(layout);
 	pipeline.constructGraphicsPipeline();
 
 	CommandPool command_pool(&device, &swapchain, &graphics_queue, &render_pass, &framebuffer, &pipeline, &descriptor_pool);
@@ -48,11 +49,14 @@ int main(int argc, char* argv[])
 	
 	Buffer coord_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Vertices.data(), Default::Shader::Vertices.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	Buffer color_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Colors.data(), Default::Shader::Colors.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	Buffer texture_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::TexCoords.data(), Default::Shader::TexCoords.size() * sizeof(glm::vec3), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	Buffer index_buffer = device.initBuffer(&command_pool, &graphics_queue, Default::Shader::Indices.data(), Default::Shader::Indices.size() * sizeof(uint16_t), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-	swapchain.attachUniformBuffers(&command_pool, &graphics_queue);
-	descriptor_pool.allocateDescriptorSets(layout.get());
 	
-	std::vector<Buffer*> vertex_buffers = { &coord_buffer, &color_buffer };
+	Image texture = device.initImage("Textures/texture.jpg", vk::Format::eR8G8B8A8Unorm, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, &command_pool);
+	swapchain.attachUniformBuffers(&command_pool, &graphics_queue);
+	descriptor_pool.allocateDescriptorSets(layout.get(), texture);
+	
+	std::vector<Buffer*> vertex_buffers = { &coord_buffer, &color_buffer, &texture_buffer };
 	command_pool.constructCommandBuffers(vertex_buffers, &index_buffer);
 	
 	window.init(&device, &swapchain, &graphics_queue, &present_queue, &framebuffer, &command_pool);

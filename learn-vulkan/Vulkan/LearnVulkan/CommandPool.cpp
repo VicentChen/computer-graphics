@@ -2,6 +2,41 @@
 
 using namespace LearnVulkan;
 
+SingleCommand::SingleCommand(Device* vDevice, CommandPool* vCommandPool, Queue* vGraphicsQueue)
+{
+	m_pDevice = vDevice;
+	m_pCommandPool = vCommandPool;
+	m_pGraphicsQueue = vGraphicsQueue;
+
+	vk::CommandBufferAllocateInfo AllocateInfo = {
+		vCommandPool->fetchCommandPool(),
+		vk::CommandBufferLevel::ePrimary,
+		1
+	};
+	m_CommandBuffer = std::move(vDevice->fetchDevice().allocateCommandBuffersUnique(AllocateInfo)[0]);
+	vk::CommandBufferBeginInfo BeginInfo = { vk::CommandBufferUsageFlagBits::eOneTimeSubmit };
+	m_CommandBuffer->begin(BeginInfo);
+}
+
+SingleCommand::~SingleCommand()
+{
+	m_CommandBuffer->end();
+
+	vk::SubmitInfo Info = {
+		0,
+		nullptr,
+		nullptr,
+		1,
+		&(m_CommandBuffer.get()),
+		0,
+		nullptr
+	};
+	VkSubmitInfo RealSubmitInfo = Info;
+
+	vkQueueSubmit(m_pGraphicsQueue->fetchQueue(), 1, &RealSubmitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_pGraphicsQueue->fetchQueue());
+}
+
 //*********************************************************************
 //FUNCTION:
 void CommandPool::constructCommandPool()

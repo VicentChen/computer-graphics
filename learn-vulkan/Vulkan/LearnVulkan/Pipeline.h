@@ -15,7 +15,7 @@ namespace LearnVulkan
 		vk::Pipeline fetchGraphicsPipeline() { return m_GraphicsPipeline.get(); }
 		vk::PipelineLayout fetchGraphicsPipelineLayout() { return m_GraphicsPipelineLayout.get(); }
 		void attachShader(Shader& vShader) { m_Shaders.emplace_back(&vShader); }
-		void attachDescriptor(vk::DescriptorSetLayout& vDescriptors) { m_Layout = vDescriptors; }
+		void attachDescriptors(vk::UniqueDescriptorSetLayout& vLayout) { m_Layout = vLayout.get(); }
 		void constructGraphicsPipeline();
 		
 	private:

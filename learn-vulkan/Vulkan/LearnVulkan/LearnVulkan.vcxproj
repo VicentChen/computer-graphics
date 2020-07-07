@@ -133,6 +133,7 @@
     <ClCompile Include="DescriptorPool.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pipeline.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="DescriptorPool.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Pipeline.h" />

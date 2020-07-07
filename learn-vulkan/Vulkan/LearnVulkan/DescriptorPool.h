@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Device.h"
 #include "Swapchain.h"
+#include "Image.h"
 
 namespace LearnVulkan
 {
@@ -10,7 +11,7 @@ namespace LearnVulkan
 	public:
 		vk::UniqueDescriptorSetLayout createDescriptorSetLayout(const std::vector<vk::DescriptorSetLayoutBinding>& vBindings = Default::Pipeline::Descriptors);
 		std::vector<vk::DescriptorSet>& fetchDescriptorSets() { return m_DescriptorSets; }
-		void allocateDescriptorSets(vk::DescriptorSetLayout& vLayout);
+		void allocateDescriptorSets(vk::DescriptorSetLayout& vLayout, Image& vImage);
 		static DescriptorPool createdByDevice(Device* vDevice) { return vDevice->initDescriptorPool(); }
 		
 	private:

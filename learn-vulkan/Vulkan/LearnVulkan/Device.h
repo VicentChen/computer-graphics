@@ -10,6 +10,7 @@ namespace LearnVulkan
 	public:
 		Device initDevice(const std::vector<const char*>& vLayerNames = Default::PhysicalDevice::LayerNames,
 			const std::vector<const char*>& vExtensionNames = Default::PhysicalDevice::ExtensionNames,
+			vk::PhysicalDeviceFeatures vFeatures = Default::PhysicalDevice::getFeatures(),
 			const std::map<std::string, float>& vQueuePriorities = {});
 
 		std::vector<vk::SurfaceFormatKHR> getSurfaceFormats(Surface& vSurface) const { return m_Device.getSurfaceFormatsKHR(vSurface.fetchSurface().get()); }
@@ -34,6 +35,7 @@ namespace LearnVulkan
 	class Buffer;
 	class CommandPool;
 	class DescriptorPool;
+	class Image;
 	
 	class Device
 	{
@@ -45,6 +47,8 @@ namespace LearnVulkan
 		DescriptorPool initDescriptorPool();
 		Shader initShader(vk::ShaderStageFlagBits vStage, const std::string& vShaderFilePath, const std::vector<vk::VertexInputBindingDescription>& vBindings = {}, const std::vector<vk::VertexInputAttributeDescription>& vAttributes = {}, const std::string& vEntrance = Default::Shader::Entrance);
 		Buffer initBuffer(CommandPool* vCommandPool, Queue* vGraphicsQueue, const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags);
+		Image initImage(const std::string& vPath, vk::Format vFormat, vk::SampleCountFlagBits vSampleFlag, vk::ImageTiling vTiling, vk::ImageUsageFlags vUsageFlag, CommandPool* vCommandPool);
+		
 		void transferData(const void* vData, uint32_t vSize, Buffer& vBuffer);
 
 		void setSwapchainPtr(Swapchain* vSwapchain) { m_pSwapchain = vSwapchain; }
@@ -52,7 +56,8 @@ namespace LearnVulkan
 		static Device createByPhysicalDevice(PhysicalDevice& vPhysicalDevice,
 			const std::vector<const char*>& vLayerNames = Default::PhysicalDevice::LayerNames,
 			const std::vector<const char*>& vExtensionNames = Default::PhysicalDevice::ExtensionNames,
-			const std::map<std::string, float>& vQueuePriorities = {}) { return vPhysicalDevice.initDevice(vLayerNames, vExtensionNames, vQueuePriorities); }
+			vk::PhysicalDeviceFeatures vFeatures = Default::PhysicalDevice::getFeatures(),
+			const std::map<std::string, float>& vQueuePriorities = {}) { return vPhysicalDevice.initDevice(vLayerNames, vExtensionNames, vFeatures, vQueuePriorities); }
 
 	private:
 		Buffer __createBuffer(const void* vData, uint32_t vSize, vk::BufferUsageFlags vUsageFlags, vk::MemoryPropertyFlags vPropertyFlags);

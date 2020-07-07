@@ -69,6 +69,13 @@ PhysicalDevice Instance::initPhysicalDevice(Surface& vSurface, const std::map<st
 			LOG_INFO(std::string("Device ") + Device.getProperties().deviceName + " not suitable");
 			continue;
 		}
+
+		vk::PhysicalDeviceFeatures SupportedFeatures = Device.getFeatures();
+		if (!SupportedFeatures.samplerAnisotropy)
+		{
+			LOG_INFO(std::string("Device ") + Device.getProperties().deviceName + " not suitable");
+			continue;
+		}
 		
 		SuitableDevices.emplace_back(PhysicalDevice(Device, QueueFamilyIndices));
 	}

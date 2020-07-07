@@ -17,7 +17,7 @@ vk::UniqueDescriptorSetLayout DescriptorPool::createDescriptorSetLayout(const st
 
 //*********************************************************************
 //FUNCTION:
-void DescriptorPool::allocateDescriptorSets(vk::DescriptorSetLayout& vLayout)
+void DescriptorPool::allocateDescriptorSets(vk::DescriptorSetLayout& vLayout, Image& vImage)
 {
 	std::vector<vk::DescriptorSetLayout> Layouts;
 	Layouts.resize(m_pSwapchain->fetchImageViews().size(), vLayout);
@@ -33,23 +33,36 @@ void DescriptorPool::allocateDescriptorSets(vk::DescriptorSetLayout& vLayout)
 
 	for (int i = 0; i < m_DescriptorSets.size(); i++)
 	{
-		vk::DescriptorBufferInfo Info = {
+		vk::DescriptorBufferInfo BufferInfo = {
 			UniformBuffers[i].fetchBuffer(),
 			0,
 			sizeof(Default::Pipeline::UniformTansfromMatrices)
 		};
 
-		vk::WriteDescriptorSet DescriptorWrite = {
+		vk::DescriptorImageInfo ImageInfo = {
+			vImage.fetchSampler(),
+			vImage.fetchImageView(),
+			vk::ImageLayout::eShaderReadOnlyOptimal
+		};
+		
+		std::vector<vk::WriteDescriptorSet> DescriptorWrites;
+		DescriptorWrites.emplace_back(vk::WriteDescriptorSet{ 
 			m_DescriptorSets[i],
 			0,
 			0,
 			1,
 			vk::DescriptorType::eUniformBuffer,
 			nullptr,
-			&Info
-		};
+			&BufferInfo });
+		DescriptorWrites.emplace_back(vk::WriteDescriptorSet{
+			m_DescriptorSets[i],
+			1,
+			0,
+			1,
+			vk::DescriptorType::eCombinedImageSampler,
+			&ImageInfo });
 
-		m_pDevice->fetchDevice().updateDescriptorSets(DescriptorWrite, nullptr);
+		m_pDevice->fetchDevice().updateDescriptorSets(DescriptorWrites, nullptr);
 	}
 }
 

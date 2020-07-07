@@ -105,7 +105,7 @@ void Window::__update(int vCurrentFrame)
 	float Time = std::chrono::duration<float, std::chrono::seconds::period>(CurrentTime - StartTime).count();
 
 	Default::Pipeline::UniformTansfromMatrices T;
-	T.Model = glm::rotate(glm::mat4(1.0f), Time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));;
+	T.Model = glm::rotate(glm::mat4(1.0f), Time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	T.View  = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	T.Proj  = glm::perspective(glm::radians(45.0f), m_pSwapchain->getExtent().width / (float)m_pSwapchain->getExtent().height, 0.1f, 10.0f);
 	T.Proj[1][1] *= -1;

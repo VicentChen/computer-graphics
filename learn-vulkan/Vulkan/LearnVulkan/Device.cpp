@@ -5,13 +5,16 @@
 #include "Buffer.h"
 #include "CommandPool.h"
 #include "DescriptorPool.h"
+#include "Image.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 #include <algorithm>
 
 using namespace LearnVulkan;
 
 //*********************************************************************
 //FUNCTION:
-Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, const std::vector<const char*>& vExtensionNames, const std::map<std::string, float>& vQueuePriorities)
+Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, const std::vector<const char*>& vExtensionNames, vk::PhysicalDeviceFeatures vFeatures, const std::map<std::string, float>& vQueuePriorities)
 {
 	std::map<std::string, float> QueuePriorities = vQueuePriorities;
 	if (vQueuePriorities.size() == 0)
@@ -35,7 +38,8 @@ Device PhysicalDevice::initDevice(const std::vector<const char*>& vLayerNames, c
 		static_cast<uint32_t>(vLayerNames.size()),
 		vLayerNames.data(),
 		static_cast<uint32_t>(vExtensionNames.size()),
-		vExtensionNames.data()
+		vExtensionNames.data(),
+		&vFeatures
 	};
 
 	return Device(m_Device.createDeviceUnique(Info), m_QueueFamilyIndices, this);
@@ -103,13 +107,15 @@ Swapchain Device::initSwapchain(PhysicalDevice& vPhysicalDevice, Surface& vSurfa
 DescriptorPool Device::initDescriptorPool()
 {
 	auto SwapchainSize = CAST_U32I(m_pSwapchain->fetchImageViews().size());
-	vk::DescriptorPoolSize Size = { vk::DescriptorType::eUniformBuffer, SwapchainSize };
+	std::vector<vk::DescriptorPoolSize> Sizes;
+	Sizes.emplace_back(vk::DescriptorPoolSize{ vk::DescriptorType::eUniformBuffer, SwapchainSize });
+	Sizes.emplace_back(vk::DescriptorPoolSize{ vk::DescriptorType::eCombinedImageSampler, SwapchainSize });
 
 	vk::DescriptorPoolCreateInfo PoolCreateInfo = {
 		vk::DescriptorPoolCreateFlags(),
 		SwapchainSize,
-		1,
-		&Size
+		CAST_U32I(Sizes.size()),
+		Sizes.data()
 	};
 
 	DescriptorPool Pool(m_Device->createDescriptorPoolUnique(PoolCreateInfo), this, m_pSwapchain);
@@ -177,6 +183,84 @@ Buffer Device::initBuffer(CommandPool* vCommandPool, Queue* vGraphicsQueue, cons
 		}
 	}
 	return buffer;
+}
+
+//*********************************************************************
+//FUNCTION:
+Image Device::initImage(const std::string& vPath, vk::Format vFormat, vk::SampleCountFlagBits vSampleFlag, vk::ImageTiling vTiling, vk::ImageUsageFlags vUsageFlag, CommandPool* vCommandPool)
+{
+	int Width, Height, Channels;
+	stbi_uc* Pixels = stbi_load(vPath.c_str(), &Width, &Height, &Channels, STBI_rgb_alpha);
+	if (!Pixels) VERBOSE_EXIT("Unable to read image");
+	int ImageSize = Width * Height * 4;
+	Buffer StagingBuffer = __createBuffer(Pixels, ImageSize, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+	vk::ImageCreateInfo Info = {
+		vk::ImageCreateFlags(),
+		vk::ImageType::e2D,
+		vFormat,
+		vk::Extent3D(Width, Height, 1),
+		1,
+		1,
+		vSampleFlag,
+		vTiling,
+		vUsageFlag,
+		vk::SharingMode::eExclusive
+	};
+	vk::UniqueImage image = m_Device->createImageUnique(Info);
+	
+	// allocate memory
+	vk::MemoryRequirements MemoryRequirements = m_Device.get().getImageMemoryRequirements(image.get());
+	vk::PhysicalDeviceMemoryProperties MemoryProperties = m_pPhysicalDevice->fetchPhysicalDevice().getMemoryProperties();
+	vk::MemoryAllocateInfo MemoryAllocateInfo = { MemoryRequirements.size };
+	for (uint32_t i = 0; i < MemoryProperties.memoryTypeCount; i++)
+	{
+		if ((MemoryRequirements.memoryTypeBits & (1 << i)) && (MemoryProperties.memoryTypes[i].propertyFlags & vk::MemoryPropertyFlagBits::eDeviceLocal))
+		{
+			MemoryAllocateInfo.memoryTypeIndex = i;
+			break;
+		}
+	}
+	vk::UniqueDeviceMemory Memory = m_Device->allocateMemoryUnique(MemoryAllocateInfo);
+	m_Device->bindImageMemory(image.get(), Memory.get(), 0);
+
+	Image RealImage = Image(std::move(image), std::move(Memory), Width, Height, 4, vCommandPool, this);
+	RealImage.transitionImageLayout(vk::PipelineStageFlagBits::eTopOfPipe, vk::ImageLayout::eUndefined, vk::PipelineStageFlagBits::eTransfer, vk::ImageLayout::eTransferDstOptimal);
+	RealImage.copyBuffer2Image(StagingBuffer);
+	RealImage.transitionImageLayout(vk::PipelineStageFlagBits::eTransfer, vk::ImageLayout::eTransferDstOptimal, vk::PipelineStageFlagBits::eFragmentShader, vk::ImageLayout::eShaderReadOnlyOptimal);
+
+	vk::ImageViewCreateInfo ViewCreateInfo = {
+		vk::ImageViewCreateFlags(),
+		RealImage.m_Image.get(),
+		vk::ImageViewType::e2D,
+		vFormat,
+		vk::ComponentMapping(),
+		{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}
+	};
+	RealImage.m_ImageView = m_Device->createImageViewUnique(ViewCreateInfo);
+
+	vk::SamplerCreateInfo SamplerCreateInfo = {
+		vk::SamplerCreateFlags(),
+		vk::Filter::eLinear,
+		vk::Filter::eLinear,
+		vk::SamplerMipmapMode::eLinear,
+		vk::SamplerAddressMode::eRepeat,
+		vk::SamplerAddressMode::eRepeat,
+		vk::SamplerAddressMode::eRepeat,
+		0.0f,
+		true,
+		16.0f,
+		false,
+		vk::CompareOp::eAlways,
+		0.0f,
+		0.0f,
+		vk::BorderColor::eIntOpaqueBlack,
+		false
+	};
+
+	RealImage.m_Sampler = m_Device->createSamplerUnique(SamplerCreateInfo);
+	
+	return RealImage;
 }
 
 //*********************************************************************
