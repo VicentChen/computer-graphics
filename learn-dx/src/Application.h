@@ -71,12 +71,12 @@ public:
 	* Request to quit the application and close all windows.
 	* @param exitCode The error code to return to the invoking process.
 	*/
-	void Quit(int exitCode = 0) { PostQuitMessage(exitCode); }
+	void Quit(int exitCode = 0);
 
 	/**
 	 * Get the Direct3D 12 device
 	 */
-	Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const { return m_d3d12Device; }
+	Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 	/**
 	 * Get a command queue. Valid types are:
 	 * - D3D12_COMMAND_LIST_TYPE_DIRECT : Can be used for draw, dispatch, or copy commands.
@@ -96,9 +96,9 @@ public:
 protected:
 
 	// Create an application instance.
-	Application(HINSTANCE hInst) : m_hInstance(hInst), m_TearingSupported(false) {}
+	Application(HINSTANCE hInst);
 	// Destroy the application instance and all windows associated with this application.
-	virtual ~Application() { Flush(); }
+	virtual ~Application();
 
 	// Initialize the application instance.
 	void Initialize();

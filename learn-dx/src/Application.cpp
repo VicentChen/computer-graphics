@@ -30,8 +30,14 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 struct MakeWindow : public Window
 {
 	MakeWindow(HWND hWnd, const std::wstring& windowName, int clientWidth, int clientHeight, bool vSync)
-		: Window(hWnd, windowName, clientWidth, clientHeight, vSync) {}
+		: Window(hWnd, windowName, clientWidth, clientHeight, vSync)
+	{}
 };
+
+Application::Application(HINSTANCE hInst)
+	: m_hInstance(hInst)
+	, m_TearingSupported(false)
+{}
 
 void Application::Initialize()
 {
@@ -64,10 +70,15 @@ void Application::Initialize()
 	wndClass.hIconSm = LoadIcon(m_hInstance, MAKEINTRESOURCE(APP_ICON));
 
 	if (!RegisterClassExW(&wndClass))
+	{
 		MessageBoxA(NULL, "Unable to register the window class.", "Error", MB_OK | MB_ICONERROR);
+	}
 
 	auto dxgiAdapter = GetAdapter(false);
-	if (dxgiAdapter) m_d3d12Device = CreateDevice(dxgiAdapter);
+	if (dxgiAdapter)
+	{
+		m_d3d12Device = CreateDevice(dxgiAdapter);
+	}
 
 	m_DirectCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	m_ComputeCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COMPUTE);
@@ -95,14 +106,20 @@ void Application::Destroy()
 {
 	if (gs_pSingelton)
 	{
-		assert(gs_Windows.empty() && gs_WindowByName.empty() && "All windows should be destroyed before destroying the application instance.");
+		assert(gs_Windows.empty() && gs_WindowByName.empty() &&
+			"All windows should be destroyed before destroying the application instance.");
 
 		delete gs_pSingelton;
 		gs_pSingelton = nullptr;
 	}
 }
 
-ComPtr<IDXGIAdapter4> Application::GetAdapter(bool bUseWarp)
+Application::~Application()
+{
+	Flush();
+}
+
+Microsoft::WRL::ComPtr<IDXGIAdapter4> Application::GetAdapter(bool bUseWarp)
 {
 	ComPtr<IDXGIFactory4> dxgiFactory;
 	UINT createFactoryFlags = 0;
@@ -144,7 +161,7 @@ ComPtr<IDXGIAdapter4> Application::GetAdapter(bool bUseWarp)
 
 	return dxgiAdapter4;
 }
-ComPtr<ID3D12Device2> Application::CreateDevice(ComPtr<IDXGIAdapter4> adapter)
+Microsoft::WRL::ComPtr<ID3D12Device2> Application::CreateDevice(Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter)
 {
 	ComPtr<ID3D12Device2> d3d12Device2;
 	ThrowIfFailed(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&d3d12Device2)));
@@ -257,17 +274,24 @@ void Application::DestroyWindow(std::shared_ptr<Window> window)
 void Application::DestroyWindow(const std::wstring& windowName)
 {
 	WindowPtr pWindow = GetWindowByName(windowName);
-	if (pWindow) DestroyWindow(pWindow);
+	if (pWindow)
+	{
+		DestroyWindow(pWindow);
+	}
 }
 
 std::shared_ptr<Window> Application::GetWindowByName(const std::wstring& windowName)
 {
 	std::shared_ptr<Window> window;
 	WindowNameMap::iterator iter = gs_WindowByName.find(windowName);
-	if (iter != gs_WindowByName.end()) window = iter->second;
+	if (iter != gs_WindowByName.end())
+	{
+		window = iter->second;
+	}
 
 	return window;
 }
+
 
 int Application::Run(std::shared_ptr<Game> pGame)
 {
@@ -291,6 +315,16 @@ int Application::Run(std::shared_ptr<Game> pGame)
 	pGame->Destroy();
 
 	return static_cast<int>(msg.wParam);
+}
+
+void Application::Quit(int exitCode)
+{
+	PostQuitMessage(exitCode);
+}
+
+Microsoft::WRL::ComPtr<ID3D12Device2> Application::GetDevice() const
+{
+	return m_d3d12Device;
 }
 
 std::shared_ptr<CommandQueue> Application::GetCommandQueue(D3D12_COMMAND_LIST_TYPE type) const
@@ -321,7 +355,7 @@ void Application::Flush()
 	m_CopyCommandQueue->Flush();
 }
 
-ComPtr<ID3D12DescriptorHeap> Application::CreateDescriptorHeap(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type)
+Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> Application::CreateDescriptorHeap(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Type = type;
@@ -329,7 +363,7 @@ ComPtr<ID3D12DescriptorHeap> Application::CreateDescriptorHeap(UINT numDescripto
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	desc.NodeMask = 0;
 
-	ComPtr<ID3D12DescriptorHeap> descriptorHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 	ThrowIfFailed(m_d3d12Device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap)));
 
 	return descriptorHeap;
@@ -450,7 +484,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 			GetKeyboardState(keyboardState);
 			wchar_t translatedCharacters[4];
 			if (int result = ToUnicodeEx(static_cast<UINT>(wParam), scanCode, keyboardState, translatedCharacters, 4, 0, NULL) > 0)
+			{
 				c = translatedCharacters[0];
+			}
 
 			KeyEventArgs keyEventArgs(key, c, KeyEventArgs::Released, shift, control, alt);
 			pWindow->OnKeyReleased(keyEventArgs);

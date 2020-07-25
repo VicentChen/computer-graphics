@@ -6,7 +6,6 @@
 #include <DirectXMath.h>
 
 #include <cassert>
-#include <string>
 
 Game::Game(const std::wstring& name, int width, int height, bool vSync)
 	: m_Name(name)

@@ -176,6 +176,8 @@ void Window::ToggleFullscreen()
 void Window::RegisterCallbacks(std::shared_ptr<Game> pGame)
 {
 	m_pGame = pGame;
+
+	return;
 }
 
 void Window::OnUpdate(UpdateEventArgs&)
