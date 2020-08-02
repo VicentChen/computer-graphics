@@ -34,7 +34,7 @@ public:
 	
 	bool isInitialized() const { return m_IsInitialized; }
 	UINT getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE vType);
-	std::shared_ptr<CCommandQueue> getCommandQueue(D3D12_COMMAND_LIST_TYPE vType);
+	std::shared_ptr<CCommandQueue> fetchCommandQueue(D3D12_COMMAND_LIST_TYPE vType) const;
 	D3D12_CPU_DESCRIPTOR_HANDLE fetchCurrentRTV() const;
 	Microsoft::WRL::ComPtr<ID3D12Resource> fetchCurrentBackBuffer() const;
 	Microsoft::WRL::ComPtr<ID3D12Device2> fetchDevice() const { return m_Device; }

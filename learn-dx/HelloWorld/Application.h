@@ -9,7 +9,7 @@ public:
 	virtual ~CApplication() = default;
 
 	virtual void start() {}
-	virtual void update() {}
+	virtual void update();
 	virtual void render();
 	virtual void shutdown() {}
 

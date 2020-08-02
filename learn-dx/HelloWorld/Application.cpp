@@ -1,10 +1,15 @@
 #include "Application.h"
 #include "Igniter.h"
 
+
+void CApplication::update()
+{
+}
+
 void CApplication::render()
 {
 	auto pIgniter = CIgniter::get();
-	auto pCommandQueue = pIgniter->getCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+	auto pCommandQueue = pIgniter->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	auto SwapChain = pIgniter->fetchSwapChain();
 	auto CommandList = pCommandQueue->createCommandList();
 

@@ -46,7 +46,7 @@ UINT CIgniter::getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE vType
 	return m_Device->GetDescriptorHandleIncrementSize(vType);
 }
 
-std::shared_ptr<CCommandQueue> CIgniter::getCommandQueue(D3D12_COMMAND_LIST_TYPE vType)
+std::shared_ptr<CCommandQueue> CIgniter::fetchCommandQueue(D3D12_COMMAND_LIST_TYPE vType) const
 {
 	switch(vType)
 	{

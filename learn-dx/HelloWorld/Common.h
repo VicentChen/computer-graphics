@@ -6,6 +6,8 @@
 
 #include "d3dx12.h"
 #include <dxgi1_6.h>
+#include <DirectXMath.h>
+#include <d3dcompiler.h>
 
 #include <string>
 #include <iostream>
@@ -50,8 +52,8 @@ namespace config
 		const std::string ClassName = "Learn DX 12";
 		const std::string Title     = "Learn DX 12";
 		
-		const int Width  = 1920;
-		const int Height = 1080;
+		const int Width  = 1280;
+		const int Height = 720;
 
 		SWndClassEx generateWindowClassEx(SHInstance vHInstance, WNDPROC vWndProc);
 	}

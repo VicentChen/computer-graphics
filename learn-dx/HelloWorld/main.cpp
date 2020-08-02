@@ -1,9 +1,9 @@
 #include "Igniter.h"
-#include "Application.h"
+#include "SpinningCube.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	CApplication App;
+	CSpinningCube App;
 	
 	CIgniter::start(hInstance);
 	CIgniter::run(&App);
