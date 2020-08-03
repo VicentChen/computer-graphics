@@ -49,20 +49,29 @@ namespace config
 {
 	namespace window
 	{
-		const std::string ClassName = "Learn DX 12";
-		const std::string Title     = "Learn DX 12";
+		extern const std::string ClassName;
+		extern const std::string Title;
 		
-		const int Width  = 1280;
-		const int Height = 720;
+		extern const int Width;
+		extern const int Height;
 
+		extern float ClearColor[];
+		
 		SWndClassEx generateWindowClassEx(SHInstance vHInstance, WNDPROC vWndProc);
 	}
 
 	namespace dx
 	{
-		const bool IsWARPAdapter = false;
-		const UINT BackBufferCount = 3;
+		extern const bool IsWARPAdapter;
+		extern const UINT BackBufferCount;
 		
 		DXGI_SWAP_CHAIN_DESC1 generateSwapChainDesc();
+	}
+
+	namespace shader
+	{
+		extern const std::string EntryPoint;
+		extern const std::string VSTarget;
+		extern const std::string PSTarget;
 	}
 }

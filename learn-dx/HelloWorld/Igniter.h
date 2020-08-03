@@ -19,7 +19,7 @@ class CIgniter
 
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_BackBuffers[config::dx::BackBufferCount];
+	Microsoft::WRL::ComPtr<ID3D12Resource>* m_pBackBuffers;
 	UINT m_RTVDescriptorSize;
 	
 	bool m_IsInitialized = false;
@@ -49,7 +49,7 @@ protected:
 	void _initialize();
 
 private:
-	CIgniter(SHInstance vInstance) : m_HInstance(vInstance) {}
+	CIgniter(SHInstance vInstance);
 	~CIgniter();
 
 	void __initSystem();

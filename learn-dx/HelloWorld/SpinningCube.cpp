@@ -75,13 +75,20 @@ void CSpinningCube::start()
 	DepthStencilViewDesc.Texture2D.MipSlice = 0;
 	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
 	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DepthStencilHeap->GetCPUDescriptorHandleForHeapStart());
+
+#if defined(_DEBUG)
+	// Enable better shader debugging with the graphics debugging tools.
+	UINT CompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	UINT CompileFlags = 0;
+#endif
 	
 	// Load vertex shader
 	ComPtr<ID3DBlob> VertexShaderBlob;
-	D3DReadFileToBlob(L"F:\\computer-graphics\\learn-dx\\x64\\Debug\\SpinningCubeVS.cso", &VertexShaderBlob);
+	debug::check(D3DCompileFromFile(L"SpinningCubeVS.hlsl", nullptr, nullptr, shader::EntryPoint.c_str(), shader::VSTarget.c_str(), CompileFlags, 0, &VertexShaderBlob, nullptr));
 	// Loda pixel shader
 	ComPtr<ID3DBlob> PixelShaderBlob;
-	D3DReadFileToBlob(L"F:\\computer-graphics\\learn-dx\\x64\\Debug\\SpinningCubePS.cso", &PixelShaderBlob);
+	debug::check(D3DCompileFromFile(L"SpinningCubePS.hlsl", nullptr, nullptr, shader::EntryPoint.c_str(), shader::PSTarget.c_str(), CompileFlags, 0, &PixelShaderBlob , nullptr));
 
 	// Vertex input layout
 	D3D12_INPUT_ELEMENT_DESC VertexInputDesc[] = {
@@ -178,11 +185,9 @@ void CSpinningCube::render()
 
 	// clear render target
 	{
-		FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
-
 		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		CommandList->ResourceBarrier(1, &barrier);
-		CommandList->ClearRenderTargetView(RTV, clearColor, 0, nullptr);
+		CommandList->ClearRenderTargetView(RTV, window::ClearColor, 0, nullptr);
 		CommandList->ClearDepthStencilView(DSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	}
 

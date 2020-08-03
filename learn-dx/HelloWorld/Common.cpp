@@ -1,5 +1,34 @@
 #include "Common.h"
 
+namespace config
+{
+	namespace window
+	{
+		const std::string ClassName = "Learn DX 12";
+		const std::string Title = "Learn DX 12";
+
+		const int Width = 1920;
+		const int Height = 1080;
+
+		float ClearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		SWndClassEx generateWindowClassEx(SHInstance vHInstance, WNDPROC vWndProc);
+	}
+
+	namespace dx
+	{
+		const bool IsWARPAdapter = false;
+		const UINT BackBufferCount = 3;
+	}
+
+	namespace shader
+	{
+		const std::string EntryPoint = "main";
+		const std::string VSTarget = "vs_5_1";
+		const std::string PSTarget = "ps_5_1";
+	}
+}
+
 SWndClassEx config::window::generateWindowClassEx(SHInstance vHInstance, WNDPROC vWndProc)
 {
 	SWndClassEx ClassEx = {

@@ -1,5 +1,5 @@
-#include "Application.h"
 #include "Igniter.h"
+#include "Application.h"
 
 
 void CApplication::update()
@@ -18,11 +18,9 @@ void CApplication::render()
 
 	// clear render target
 	{
-		FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
-		
 		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		CommandList->ResourceBarrier(1, &barrier);
-		CommandList->ClearRenderTargetView(RTV, clearColor, 0, nullptr);
+		CommandList->ClearRenderTargetView(RTV, config::window::ClearColor, 0, nullptr);
 	}
 	
 	// present

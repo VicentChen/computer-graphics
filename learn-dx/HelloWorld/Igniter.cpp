@@ -66,7 +66,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE CIgniter::fetchCurrentRTV() const
 Microsoft::WRL::ComPtr<ID3D12Resource> CIgniter::fetchCurrentBackBuffer() const
 {
 	UINT CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
-	return m_BackBuffers[CurrentBackBufferIndex];
+	return m_pBackBuffers[CurrentBackBufferIndex];
 }
 
 ComPtr<ID3D12DescriptorHeap> CIgniter::createDescriptorHeap(UINT vDescriptorNum, D3D12_DESCRIPTOR_HEAP_TYPE vType)
@@ -105,14 +105,20 @@ void CIgniter::_initialize()
 	m_IsInitialized = true;
 }
 
+CIgniter::CIgniter(SHInstance vInstance) : m_HInstance(vInstance)
+{
+	m_pBackBuffers = new ComPtr<ID3D12Resource>[dx::BackBufferCount];
+}
+
 CIgniter::~CIgniter()
 {
 	m_CopyCommandQueue->Flush();
 	m_ComputeCommandQueue->Flush();
 	m_DirectCommandQueue->Flush();
-	
+
+	// TODO: bugs here! m_pBackBuffers array hasn't been deleted
 	for (int i = 0; i < dx::BackBufferCount; i++)
-		m_BackBuffers[i].Reset();
+		m_pBackBuffers[i].Reset();
 }
 
 void CIgniter::__initSystem()
@@ -230,8 +236,8 @@ void CIgniter::__initDX()
 	CD3DX12_CPU_DESCRIPTOR_HANDLE RTVHandle(m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 	for (int i = 0; i < dx::BackBufferCount; i++)
 	{
-		debug::check(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&(m_BackBuffers[i]))));
-		m_Device->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, RTVHandle);
+		debug::check(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&(m_pBackBuffers[i]))));
+		m_Device->CreateRenderTargetView(m_pBackBuffers[i].Get(), nullptr, RTVHandle);
 		RTVHandle.Offset(m_RTVDescriptorSize);
 	}
 }
