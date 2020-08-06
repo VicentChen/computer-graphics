@@ -118,32 +118,49 @@ void CSpinningCube::start()
 	debug::check(D3DX12SerializeVersionedRootSignature(&RootSignatureDesc, RootSignatureFeature.HighestVersion, &RootSignatureBlob, &ErrorBlob));
 	debug::check(Device->CreateRootSignature(0, RootSignatureBlob->GetBufferPointer(), RootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature)));
 
-	struct SPipelineStateStream
-	{
-		CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-		CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
-		CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
-		CD3DX12_PIPELINE_STATE_STREAM_VS VS;
-		CD3DX12_PIPELINE_STATE_STREAM_PS PS;
-		CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
-		CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
-	} PipelineStateStream;
+	//struct SPipelineStateStream
+	//{
+	//	CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+	//	CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
+	//	CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
+	//	CD3DX12_PIPELINE_STATE_STREAM_VS VS;
+	//	CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+	//	CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
+	//	CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
+	//} PipelineStateStream;
 
-	D3D12_RT_FORMAT_ARRAY RTVFormats = {};
-	RTVFormats.NumRenderTargets = 1;
-	RTVFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//D3D12_RT_FORMAT_ARRAY RTVFormats = {};
+	//RTVFormats.NumRenderTargets = 1;
+	//RTVFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	PipelineStateStream.pRootSignature = m_RootSignature.Get();
-	PipelineStateStream.InputLayout = { VertexInputDesc, _countof(VertexInputDesc) };
-	PipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	PipelineStateStream.VS = CD3DX12_SHADER_BYTECODE(VertexShaderBlob.Get());
-	PipelineStateStream.PS = CD3DX12_SHADER_BYTECODE(PixelShaderBlob.Get());
-	PipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-	PipelineStateStream.RTVFormats = RTVFormats;
+	//PipelineStateStream.pRootSignature = m_RootSignature.Get();
+	//PipelineStateStream.InputLayout = { VertexInputDesc, _countof(VertexInputDesc) };
+	//PipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	//PipelineStateStream.VS = CD3DX12_SHADER_BYTECODE(VertexShaderBlob.Get());
+	//PipelineStateStream.PS = CD3DX12_SHADER_BYTECODE(PixelShaderBlob.Get());
+	//PipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	//PipelineStateStream.RTVFormats = RTVFormats;
 
-	D3D12_PIPELINE_STATE_STREAM_DESC PipelineStateStreamDesc = { sizeof(PipelineStateStream), &PipelineStateStream };
-	debug::check(Device->CreatePipelineState(&PipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState)));
+	//D3D12_PIPELINE_STATE_STREAM_DESC PipelineStateStreamDesc = { sizeof(PipelineStateStream), &PipelineStateStream };
+	//debug::check(Device->CreatePipelineState(&PipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState)));
 
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.pRootSignature = m_RootSignature.Get();
+	psoDesc.InputLayout = { VertexInputDesc, _countof(VertexInputDesc) };
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(VertexShaderBlob.Get());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(PixelShaderBlob.Get());
+	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	//psoDesc.DepthStencilState.DepthEnable = TRUE;
+	//psoDesc.DepthStencilState.StencilEnable = TRUE;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.SampleDesc.Count = 1;
+	debug::check(Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState)));
+	
 	auto FenceValue = CommandQueue->executeCommandList(CommandList);
 	CommandQueue->wait4Fence(FenceValue);
 
@@ -158,7 +175,7 @@ void CSpinningCube::update()
 	static UINT64 FrameCount = 0;
 	FrameCount++;
 	
-	double Angle = FrameCount / 1000.0f; // 9000 frames - 90 degree
+	double Angle = FrameCount / 100.0f; // 9000 frames - 90 degree
 	const XMVECTOR RotationAxis = XMVectorSet(0, 1, 1, 0);
 	m_ModelMatrix = XMMatrixRotationAxis(RotationAxis, Angle);
 	

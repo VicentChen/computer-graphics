@@ -63,7 +63,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE CIgniter::fetchCurrentRTV() const
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), CurrentBackBufferIndex, m_RTVDescriptorSize);
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource> CIgniter::fetchCurrentBackBuffer() const
+ComPtr<ID3D12Resource> CIgniter::fetchCurrentBackBuffer() const
 {
 	UINT CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
 	return m_pBackBuffers[CurrentBackBufferIndex];
@@ -184,7 +184,7 @@ void CIgniter::__initDX()
 			Adapter1->GetDesc1(&AdapterDesc);
 
 			if ((AdapterDesc.Flags && DXGI_ADAPTER_FLAG_SOFTWARE) == 0 
-				&& SUCCEEDED(D3D12CreateDevice(Adapter1.Get(), D3D_FEATURE_LEVEL_12_0, __uuidof(ID3D12Device), nullptr)) 
+				&& SUCCEEDED(D3D12CreateDevice(Adapter1.Get(), D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) 
 				&& AdapterDesc.DedicatedVideoMemory > MaxMemory)
 			{
 				MaxMemory = AdapterDesc.DedicatedVideoMemory;
@@ -194,7 +194,7 @@ void CIgniter::__initDX()
 	}
 
 	// Create device
-	debug::check(D3D12CreateDevice(Adapter4.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_Device)));
+	debug::check(D3D12CreateDevice(Adapter4.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
 
 	// Debug Information
 #ifdef _DEBUG
@@ -228,8 +228,18 @@ void CIgniter::__initDX()
 	DXGI_SWAP_CHAIN_DESC1 SwapChainDesc = dx::generateSwapChainDesc();
 	debug::check(Factory->CreateSwapChainForHwnd(m_DirectCommandQueue->fetchCommandQueue().Get(), m_HWindow, &SwapChainDesc, nullptr, nullptr, &SwapChain));
 	debug::check(SwapChain.As(&m_SwapChain));
+	
+	D3D12_DESCRIPTOR_HEAP_DESC RTVHeapDesc = {};
+	RTVHeapDesc.NumDescriptors = dx::BackBufferCount;
+	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	debug::check(m_Device->CreateDescriptorHeap(&RTVHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
 
-	m_RTVDescriptorHeap = createDescriptorHeap(dx::BackBufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc = {};
+	SRVHeapDesc.NumDescriptors = 1;
+	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	debug::check(m_Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(&m_SRVDescriptorHeap)));
 
 	// Create RTV Descriptors
 	m_RTVDescriptorSize = getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

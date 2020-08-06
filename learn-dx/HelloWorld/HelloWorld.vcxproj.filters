@@ -36,6 +36,9 @@
     <ClCompile Include="SpinningCube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SpinningTexturePlane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -56,12 +59,24 @@
     <ClInclude Include="SpinningCube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SpinningTexturePlane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="SpinningCubeVS.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="SpinningCubePS.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="SpinningTexturePlanePS.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="SpinningTexturePlaneVS.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

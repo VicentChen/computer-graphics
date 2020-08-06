@@ -19,6 +19,7 @@ class CIgniter
 
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SRVDescriptorHeap;
 	Microsoft::WRL::ComPtr<ID3D12Resource>* m_pBackBuffers;
 	UINT m_RTVDescriptorSize;
 	
@@ -39,6 +40,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12Resource> fetchCurrentBackBuffer() const;
 	Microsoft::WRL::ComPtr<ID3D12Device2> fetchDevice() const { return m_Device; }
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> fetchSwapChain() const { return m_SwapChain; }
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> fetchSRVHeap() const { return m_SRVDescriptorHeap; }
 	SHWnd fetchWindow() const { return m_HWindow; }
 	
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> createDescriptorHeap(UINT vDescriptorNum, D3D12_DESCRIPTOR_HEAP_TYPE vType);
