@@ -1,7 +1,7 @@
 #pragma once
 #include "Application.h"
 
-class CSpinningTexturePlane : public CApplication
+class CShadowTexturePlane : public CApplication
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
@@ -13,10 +13,12 @@ class CSpinningTexturePlane : public CApplication
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DepthStencilHeap;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_RenderPipelineState;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_ShadowPipelineState;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_Texture;
-	
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_ShadowMap;
+
 	D3D12_VIEWPORT m_Viewport;
 	D3D12_RECT m_ScissorRect;
 
