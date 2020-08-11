@@ -1,0 +1,67 @@
+set(EXTERNAL_PROJECT_DIR "${PROJECT_BINARY_DIR}/External")
+set(EXTERNAL_DOWNLOAD_DIR "${PBR_ROOT_DIR}/External/Downloads")
+set(EXTERNAL_BINARY_DIR "${PROJECT_BINARY_DIR}/Dependencies")
+
+function(DownloadExternal name url target md5)
+    set(file_download_path "${EXTERNAL_DOWNLOAD_DIR}/${target}")
+    if(NOT EXISTS ${file_download_path})
+        message(STATUS "Downloading ${name}...")
+        file(DOWNLOAD ${url} ${file_download_path} SHOW_PROGRESS EXPECTED_MD5 ${md5})
+    endif()
+    message(STATUS "${name} downloaded.")
+    file(COPY ${file_download_path} DESTINATION ${EXTERNAL_PROJECT_DIR}/)
+endfunction(DownloadExternal)
+
+# TODO: change to fit different build type
+set(BUILD_COMMAND_OPTS --target install --config ${CMAKE_BUILD_TYPE})
+file(MAKE_DIRECTORY ${EXTERNAL_DOWNLOAD_DIR})
+
+########
+# GLFW #
+########
+set(GLFW_PROJECT_DIR "${EXTERNAL_PROJECT_DIR}/glfw-3.2.1")
+DownloadExternal("GLFW" "https://github.com/glfw/glfw/archive/3.2.1.tar.gz" "glfw-3.2.1.tar.gz" "91B8250B6EDCC26C9F5205555070A504")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf glfw-3.2.1.tar.gz  WORKING_DIRECTORY ${EXTERNAL_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_BINARY_DIR}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DGLFW_BUILD_EXAMPLES=OFF
+    -DGLFW_BUILD_TESTS=OFF
+    -DGLFW_BUILD_DOCS=OFF
+    -G ${CMAKE_GENERATOR}
+    -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+    ${GLFW_PROJECT_DIR}
+    WORKING_DIRECTORY ${GLFW_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${GLFW_PROJECT_DIR} ${BUILD_COMMAND_OPTS})
+
+########
+# GLAD #
+########
+set(GLAD_PROJECT_DIR "${EXTERNAL_PROJECT_DIR}/glad")
+file(COPY ${PBR_ROOT_DIR}/External/glad/ DESTINATION ${GLAD_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_BINARY_DIR}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -G ${CMAKE_GENERATOR}
+    -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+    ${GLAD_PROJECT_DIR}
+    WORKING_DIRECTORY ${GLAD_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${GLAD_PROJECT_DIR} ${BUILD_COMMAND_OPTS})
+
+#######
+# GLM #
+#######
+set(GLM_PROJECT_DIR "${EXTERNAL_PROJECT_DIR}/glm-0.9.9.5")
+DownloadExternal("GLM" "https://github.com/g-truc/glm/archive/0.9.9.5.tar.gz" "glm-0.9.9.5.tar.gz" "E06E859BD80C5D6042F5C53630F385EC")
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf glm-0.9.9.5.tar.gz  WORKING_DIRECTORY ${EXTERNAL_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} 
+    -DCMAKE_INSTALL_PREFIX=${EXTERNAL_BINARY_DIR}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -G ${CMAKE_GENERATOR}
+    -DCMAKE_GENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}
+    -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+    ${GLM_PROJECT_DIR}
+    WORKING_DIRECTORY ${GLM_PROJECT_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${GLM_PROJECT_DIR} ${BUILD_COMMAND_OPTS})
