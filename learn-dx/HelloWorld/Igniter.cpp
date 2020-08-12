@@ -234,19 +234,6 @@ void CIgniter::__initDX()
 	RTVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	RTVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	debug::check(m_Device->CreateDescriptorHeap(&RTVHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
-
-	// TODO: move SRV & CBV to Application
-	D3D12_DESCRIPTOR_HEAP_DESC SRVHeapDesc = {};
-	SRVHeapDesc.NumDescriptors = 4;
-	SRVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	SRVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	debug::check(m_Device->CreateDescriptorHeap(&SRVHeapDesc, IID_PPV_ARGS(&m_SRVDescriptorHeap)));
-
-	D3D12_DESCRIPTOR_HEAP_DESC CBVHeapDesc = {};
-	CBVHeapDesc.NumDescriptors = 1;
-	CBVHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	CBVHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	debug::check(m_Device->CreateDescriptorHeap(&CBVHeapDesc, IID_PPV_ARGS(&m_CBVDescriptorHeap)));
 	
 	// Create RTV Descriptors
 	m_RTVDescriptorSize = getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

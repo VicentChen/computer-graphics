@@ -49,10 +49,11 @@ static WORD Indicies[36] =
 
 void CSpinningTexturePlane::start()
 {
+	createDescriptorHeap(0, 1, 0, 0, 1);
+	
 	auto Device = CIgniter::get()->fetchDevice();
 	auto CommandQueue = CIgniter::get()->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	auto CommandList = CommandQueue->createCommandList();
-	auto SRVDescriptorHeap = CIgniter::get()->fetchSRVHeap();
 
 	D3D12_FEATURE_DATA_ROOT_SIGNATURE FeatureDataRootSignature = { D3D_ROOT_SIGNATURE_VERSION_1_1 };
 	if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &FeatureDataRootSignature, sizeof(FeatureDataRootSignature))))
@@ -149,8 +150,6 @@ void CSpinningTexturePlane::start()
 	m_IndexBufferView.SizeInBytes = sizeof(Indicies);
 
 	// Create depth and stencil buffer
-	D3D12_DESCRIPTOR_HEAP_DESC DepthStencilDescriptorHeapDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
-	debug::check(Device->CreateDescriptorHeap(&DepthStencilDescriptorHeapDesc, IID_PPV_ARGS(&m_DepthStencilHeap)));
 	D3D12_CLEAR_VALUE OptimizedDepthClearValue = {};
 	OptimizedDepthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	OptimizedDepthClearValue.DepthStencil = { 1.0f, 0 };
@@ -160,7 +159,7 @@ void CSpinningTexturePlane::start()
 	DepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	DepthStencilViewDesc.Texture2D.MipSlice = 0;
 	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DepthStencilHeap->GetCPUDescriptorHandleForHeapStart());
+	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	// Create texture
 	SCPUTexture CPUTexture;
@@ -183,7 +182,7 @@ void CSpinningTexturePlane::start()
 	SRVDesc.Format = TextureDesc.Format;
 	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = 1;
-	Device->CreateShaderResourceView(m_Texture.Get(), &SRVDesc, SRVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	Device->CreateShaderResourceView(m_Texture.Get(), &SRVDesc, m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 	auto FenceValue = CommandQueue->executeCommandList(CommandList);
 	CommandQueue->wait4Fence(FenceValue);
@@ -221,10 +220,9 @@ void CSpinningTexturePlane::render()
 	auto pCommandQueue = pIgniter->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 	auto SwapChain = pIgniter->fetchSwapChain();
 	auto CommandList = pCommandQueue->createCommandList();
-	auto SRVDescriptorHeap = pIgniter->fetchSRVHeap();
 	
 	auto RTV = pIgniter->fetchCurrentRTV();
-	auto DSV = m_DepthStencilHeap->GetCPUDescriptorHandleForHeapStart();
+	auto DSV = m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	auto BackBuffer = pIgniter->fetchCurrentBackBuffer();
 
 	// clear render target
@@ -238,9 +236,9 @@ void CSpinningTexturePlane::render()
 	CommandList->SetPipelineState(m_PipelineState.Get());
 	CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-	ID3D12DescriptorHeap* ppHeaps[] = { SRVDescriptorHeap.Get() };
+	ID3D12DescriptorHeap* ppHeaps[] = { m_CBVSRVUAVDescriptorHeap.Get() };
 	CommandList->SetDescriptorHeaps(1, ppHeaps);
-	CommandList->SetGraphicsRootDescriptorTable(1, SRVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	CommandList->SetGraphicsRootDescriptorTable(1, m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 	
 	CommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
