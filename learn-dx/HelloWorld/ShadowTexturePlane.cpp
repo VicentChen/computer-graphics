@@ -178,7 +178,7 @@ void CShadowTexturePlane::start()
 	DepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	DepthStencilViewDesc.Texture2D.MipSlice = 0;
 	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	createDepthStencilDescriptor(0, DepthStencilViewDesc, m_DepthStencilBuffer.Get());
 
 	// Create texture
 	SCPUTexture CPUTexture;
@@ -201,7 +201,7 @@ void CShadowTexturePlane::start()
 	SRVDesc.Format = TextureDesc.Format;
 	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = 1;
-	Device->CreateShaderResourceView(m_Texture.Get(), &SRVDesc, m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	createShaderResourceDescriptor(0, SRVDesc, m_Texture.Get());
 
 	// Create shadow map
 	CD3DX12_RESOURCE_DESC ShadowMapDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_TYPELESS, 1024, 1024, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -211,23 +211,18 @@ void CShadowTexturePlane::start()
 	ShadowMapClearValue.DepthStencil.Stencil = 0;
 	debug::check(Device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &ShadowMapDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &ShadowMapClearValue, IID_PPV_ARGS(&m_ShadowMap)));
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapDepthStencilCpuHandle(m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	ShadowMapDepthStencilCpuHandle.Offset(1, CIgniter::get()->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV));
 	D3D12_DEPTH_STENCIL_VIEW_DESC ShadowMapDepthStencilViewDesc = {};
 	ShadowMapDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	ShadowMapDepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	ShadowMapDepthStencilViewDesc.Texture2D.MipSlice = 0;
-	Device->CreateDepthStencilView(m_ShadowMap.Get(), &ShadowMapDepthStencilViewDesc, ShadowMapDepthStencilCpuHandle);
-	
-	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapCpuHandle(m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	ShadowMapCpuHandle.Offset(1, CIgniter::get()->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	createDepthStencilDescriptor(1, ShadowMapDepthStencilViewDesc, m_ShadowMap.Get());
 	
 	D3D12_SHADER_RESOURCE_VIEW_DESC ShadowMapSRVDesc = {};
 	ShadowMapSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	ShadowMapSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	ShadowMapSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	ShadowMapSRVDesc.Texture2D.MipLevels = 1;
-	Device->CreateShaderResourceView(m_ShadowMap.Get(), &ShadowMapSRVDesc, ShadowMapCpuHandle);
+	createShaderResourceDescriptor(1, ShadowMapSRVDesc, m_ShadowMap.Get());
 
 	// Null srv to make DX12 happy
 	D3D12_SHADER_RESOURCE_VIEW_DESC NullSRVDesc = {};
@@ -237,11 +232,8 @@ void CShadowTexturePlane::start()
 	NullSRVDesc.Texture2D.MipLevels = 1;
 	NullSRVDesc.Texture2D.MostDetailedMip = 0;
 	NullSRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	CD3DX12_CPU_DESCRIPTOR_HANDLE NullSRVHandles(m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	NullSRVHandles.Offset(2, CIgniter::get()->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	Device->CreateShaderResourceView(nullptr, &NullSRVDesc, NullSRVHandles);
-	NullSRVHandles.Offset(1, CIgniter::get()->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	Device->CreateShaderResourceView(nullptr, &NullSRVDesc, NullSRVHandles);
+	createShaderResourceDescriptor(2, NullSRVDesc, nullptr);
+	createShaderResourceDescriptor(3, NullSRVDesc, nullptr);
 	
 	// Create viewport & scissors
 	m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(window::Width), static_cast<float>(window::Height));
