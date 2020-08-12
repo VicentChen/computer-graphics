@@ -36,6 +36,8 @@ static WORD Indicies[36] =
 
 void CSpinningCube::start()
 {
+	createDescriptorHeap(	0,0,0,0,1);
+	
 	auto Device = CIgniter::get()->fetchDevice();
 	auto CommandQueue = CIgniter::get()->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 	auto CommandList = CommandQueue->createCommandList();
@@ -62,9 +64,7 @@ void CSpinningCube::start()
 	m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	m_IndexBufferView.SizeInBytes = sizeof(Indicies);
 
-	// Create depth and stencil buffer
-	D3D12_DESCRIPTOR_HEAP_DESC DepthStencilDescriptorHeapDesc = { D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0 };
-	debug::check(Device->CreateDescriptorHeap(&DepthStencilDescriptorHeapDesc, IID_PPV_ARGS(&m_DepthStencilHeap)));
+	// Create depth and stencil buffer	
 	D3D12_CLEAR_VALUE OptimizedDepthClearValue = {};
 	OptimizedDepthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	OptimizedDepthClearValue.DepthStencil = { 1.0f, 0 };
@@ -74,7 +74,7 @@ void CSpinningCube::start()
 	DepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	DepthStencilViewDesc.Texture2D.MipSlice = 0;
 	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DepthStencilHeap->GetCPUDescriptorHandleForHeapStart());
+	Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), &DepthStencilViewDesc, m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 #if defined(_DEBUG)
 	// Enable better shader debugging with the graphics debugging tools.
@@ -197,7 +197,7 @@ void CSpinningCube::render()
 	auto CommandList = pCommandQueue->createCommandList();
 
 	auto RTV = pIgniter->fetchCurrentRTV();
-	auto DSV = m_DepthStencilHeap->GetCPUDescriptorHandleForHeapStart();
+	auto DSV = m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	auto BackBuffer = pIgniter->fetchCurrentBackBuffer();
 
 	// clear render target

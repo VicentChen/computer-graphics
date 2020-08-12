@@ -10,7 +10,6 @@ class CSpinningCube : public CApplication
 	D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthStencilBuffer;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DepthStencilHeap;
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
