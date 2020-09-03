@@ -21,20 +21,29 @@ CCommandQueue::CCommandQueue(D3D12_COMMAND_LIST_TYPE vType) : m_CommandListType(
 	if (!m_FenceEvent) logger::error("Failed to create fence event");
 }
 
-ComPtr<ID3D12GraphicsCommandList2> CCommandQueue::createCommandList()
+ComPtr<ID3D12GraphicsCommandList4> CCommandQueue::createCommandList()
 {
 	auto Device = CIgniter::get()->fetchDevice();
 	
 	ComPtr<ID3D12CommandAllocator> Allocator;
-	debug::check(Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&Allocator)));
+	//debug::check(Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&Allocator)));
+	if (FAILED(Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&Allocator))))
+	{
+		auto I = CIgniter::get()->fetchDevice()->GetDeviceRemovedReason();
+			debug::check(I);
+	}
 
-	ComPtr<ID3D12GraphicsCommandList2> CommandList;
-	debug::check(Device->CreateCommandList(0, m_CommandListType, Allocator.Get(), nullptr, IID_PPV_ARGS(&CommandList)));
-
+	ComPtr<ID3D12GraphicsCommandList4> CommandList;
+	//debug::check(Device->CreateCommandList(0, m_CommandListType, Allocator.Get(), nullptr, IID_PPV_ARGS(&CommandList)));
+	if (FAILED(Device->CreateCommandList(0, m_CommandListType, Allocator.Get(), nullptr, IID_PPV_ARGS(&CommandList))))
+	{
+		auto I = CIgniter::get()->fetchDevice()->GetDeviceRemovedReason();
+		debug::check(I);
+	}
 	return CommandList;
 }
 
-UINT64 CCommandQueue::executeCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> vCommandList)
+UINT64 CCommandQueue::executeCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> vCommandList)
 {
 	vCommandList->Close();
 	ID3D12CommandList* const ppCommandLists[] = {

@@ -27,8 +27,11 @@ class CShadowTexturePlane : public CApplication
 	float m_FoV = 45;
 
 public:
-	void start() override;
 	void update() override;
 	void render() override;
-	void shutdown() override;
+
+protected:
+	void _initPipeline() override;
+	void _loadModels() override;
+	void _describeAssets() override;
 };

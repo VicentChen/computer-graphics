@@ -184,7 +184,7 @@ void CIgniter::__initDX()
 			Adapter1->GetDesc1(&AdapterDesc);
 
 			if ((AdapterDesc.Flags && DXGI_ADAPTER_FLAG_SOFTWARE) == 0 
-				&& SUCCEEDED(D3D12CreateDevice(Adapter1.Get(), D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) 
+				&& SUCCEEDED(D3D12CreateDevice(Adapter1.Get(), D3D_FEATURE_LEVEL_12_1, __uuidof(ID3D12Device), nullptr)) 
 				&& AdapterDesc.DedicatedVideoMemory > MaxMemory)
 			{
 				MaxMemory = AdapterDesc.DedicatedVideoMemory;
@@ -194,7 +194,7 @@ void CIgniter::__initDX()
 	}
 
 	// Create device
-	debug::check(D3D12CreateDevice(Adapter4.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+	debug::check(D3D12CreateDevice(Adapter4.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_Device)));
 
 	// Debug Information
 #ifdef _DEBUG

@@ -8,9 +8,13 @@
 #include <dxgi1_6.h>
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
+#include <dxcapi.h>
 
+#include <array>
 #include <string>
 #include <iostream>
+
+#define NUM_ARRAY_ARGS(Array) _countof(Array), Array
 
 using SHInstance = HINSTANCE;
 using SWndClassEx = WNDCLASSEX;
@@ -43,6 +47,15 @@ namespace debug
 			throw std::exception();
 		}
 	}
+
+	inline void check(bool b, const std::string& vInfo = "No error message")
+	{
+		if (!b)
+		{
+			logger::error(vInfo);
+			throw std::exception();
+		}
+	}
 }
 
 namespace config
@@ -61,7 +74,19 @@ namespace config
 	}
 
 	namespace dx
-	{
+	{	
+		struct SShaderResource
+		{
+			ID3D12Resource* pResource;
+			D3D12_SHADER_RESOURCE_VIEW_DESC Desc;
+		};
+
+		struct SDepthStencil
+		{
+			ID3D12Resource* pResource;
+			D3D12_DEPTH_STENCIL_VIEW_DESC Desc;
+		};
+		
 		extern const bool IsWARPAdapter;
 		extern const UINT BackBufferCount;
 		
@@ -73,5 +98,14 @@ namespace config
 		extern const std::string EntryPoint;
 		extern const std::string VSTarget;
 		extern const std::string PSTarget;
+	}
+}
+
+namespace global
+{
+	namespace dx
+	{
+		extern const CD3DX12_HEAP_PROPERTIES DefaultHeadProps;
+		extern const CD3DX12_HEAP_PROPERTIES UploadHeadProps;
 	}
 }

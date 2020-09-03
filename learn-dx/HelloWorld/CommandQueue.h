@@ -16,8 +16,8 @@ public:
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> fetchCommandQueue() const { return m_CommandQueue; }
 
 	// TODO: 当前每次都需要创建一个CommandList, 可以使用Pool进行优化
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> createCommandList();
-	UINT64 executeCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> vCommandList);
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> createCommandList();
+	UINT64 executeCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> vCommandList);
 	
 	UINT64 signal();
 	bool isFenceComplete(UINT64 vValue) const;

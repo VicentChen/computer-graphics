@@ -11,7 +11,7 @@ class CIgniter
 
 	SHInstance m_HInstance;
 	SHWnd m_HWindow;
-	Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
+	Microsoft::WRL::ComPtr<ID3D12Device5> m_Device;
 
 	std::shared_ptr<CCommandQueue> m_DirectCommandQueue;
 	std::shared_ptr<CCommandQueue> m_ComputeCommandQueue;
@@ -38,7 +38,7 @@ public:
 	std::shared_ptr<CCommandQueue> fetchCommandQueue(D3D12_COMMAND_LIST_TYPE vType) const;
 	D3D12_CPU_DESCRIPTOR_HANDLE fetchCurrentRTV() const;
 	Microsoft::WRL::ComPtr<ID3D12Resource> fetchCurrentBackBuffer() const;
-	Microsoft::WRL::ComPtr<ID3D12Device2> fetchDevice() const { return m_Device; }
+	Microsoft::WRL::ComPtr<ID3D12Device5> fetchDevice() const { return m_Device; }
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> fetchSwapChain() const { return m_SwapChain; }
 	SHWnd fetchWindow() const { return m_HWindow; }
 	

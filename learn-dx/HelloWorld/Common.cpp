@@ -29,6 +29,15 @@ namespace config
 	}
 }
 
+namespace global
+{
+	namespace dx
+	{
+		const CD3DX12_HEAP_PROPERTIES DefaultHeadProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		const CD3DX12_HEAP_PROPERTIES UploadHeadProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	}
+}
+
 SWndClassEx config::window::generateWindowClassEx(SHInstance vHInstance, WNDPROC vWndProc)
 {
 	SWndClassEx ClassEx = {

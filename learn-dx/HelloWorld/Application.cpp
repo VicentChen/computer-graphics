@@ -1,6 +1,12 @@
 #include "Igniter.h"
 #include "Application.h"
+#include "dxcapi.use.h"
+#include <fstream>
+#include <sstream>
 
+template<class BlotType> std::string convertBlobToString(BlotType* pBlob);
+
+static dxc::DxcDllSupport DxcDllHelper;
 
 void CApplication::SDescriptorHeapAttributes::init(D3D12_DESCRIPTOR_HEAP_DESC& vDesc, ID3D12DescriptorHeap* vHeap)
 {
@@ -12,11 +18,9 @@ void CApplication::SDescriptorHeapAttributes::init(D3D12_DESCRIPTOR_HEAP_DESC& v
 
 void CApplication::start()
 {
-	createDescriptorHeap(0, 0, 0, 0, 1);
-}
-
-void CApplication::update()
-{
+	_initPipeline();
+	_loadModels();
+	_describeAssets();
 }
 
 void CApplication::render()
@@ -45,6 +49,18 @@ void CApplication::render()
 		pCommandQueue->wait4Fence(FenceValue);
 	}
 }
+
+//void CApplication::uploadBuffer(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2>& vCommandList, Microsoft::WRL::ComPtr<ID3D12Resource>& vResource, D3D12_RESOURCE_DESC& vDesc, D3D12_SUBRESOURCE_DATA& vSubresourceData)
+//{
+//	auto pDevice = CIgniter::get()->fetchDevice();
+//	debug::check(pDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &vDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&vResource)));
+//
+//	Microsoft::WRL::ComPtr<ID3D12Resource> IntermediateResource;
+//	UINT64 BufferSize = GetRequiredIntermediateSize(vResource.Get(), 0, 1);
+//	debug::check(pDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(BufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&IntermediateResource)));
+//
+//	UpdateSubresources(vCommandList.Get(), vResource.Get(), IntermediateResource.Get(), 0, 0, 1, &vSubresourceData);
+//}
 
 void CApplication::createDescriptorHeap(int vCBVDescriptorCount, int vSRVDescriptorNum, int vUAVDescriptorNum, int vSamplerNum, int vDSVDescriptorNum) {
 	auto pDevice = CIgniter::get()->fetchDevice();
@@ -95,6 +111,14 @@ void CApplication::createDescriptorHeap(int vCBVDescriptorCount, int vSRVDescrip
 	}
 }
 
+void CApplication::createUnorderedAccessDescriptor(int vIndex, const D3D12_UNORDERED_ACCESS_VIEW_DESC& vDesc, ID3D12Resource* vResource, ID3D12Resource* vCounterResource)
+{
+	auto pDevice = CIgniter::get()->fetchDevice();
+	CD3DX12_CPU_DESCRIPTOR_HANDLE Handle(m_CBVSRVUAVDescriptorHeapAttributes.CPUHandle);
+	Handle.Offset(vIndex, m_CBVSRVUAVDescriptorHeapAttributes.DescriptorSize);
+	pDevice->CreateUnorderedAccessView(vResource, vCounterResource, &vDesc, Handle);
+}
+
 void CApplication::createShaderResourceDescriptor(int vIndex, const D3D12_SHADER_RESOURCE_VIEW_DESC& vDesc, ID3D12Resource* vResource)
 {
 	auto pDevice = CIgniter::get()->fetchDevice();
@@ -109,4 +133,79 @@ void CApplication::createDepthStencilDescriptor(int vIndex, const D3D12_DEPTH_ST
 	CD3DX12_CPU_DESCRIPTOR_HANDLE Handle(m_DSVDescriptorHeapAttributes.CPUHandle);
 	Handle.Offset(vIndex, m_DSVDescriptorHeapAttributes.DescriptorSize);
 	pDevice->CreateDepthStencilView(vResource, &vDesc, Handle);
+}
+
+void CApplication::createShaderResourceDescriptors(std::vector<config::dx::SShaderResource>& vShaderResources)
+{
+	_ASSERTE(vShaderResources.size() == m_CBVSRVUAVDescriptorHeapAttributes.Desc.NumDescriptors);
+	
+	auto pDevice = CIgniter::get()->fetchDevice();
+	CD3DX12_CPU_DESCRIPTOR_HANDLE Handle(m_CBVSRVUAVDescriptorHeapAttributes.CPUHandle);
+
+	for (auto& ShaderResource : vShaderResources)
+	{
+		pDevice->CreateShaderResourceView(ShaderResource.pResource, &ShaderResource.Desc, Handle);
+		Handle.Offset(1, m_CBVSRVUAVDescriptorHeapAttributes.DescriptorSize);
+	}
+}
+
+void CApplication::createDepthStencilDescriptors(std::vector<config::dx::SDepthStencil>& vDepthStencils)
+{
+	_ASSERTE(vDepthStencils.size() == m_DSVDescriptorHeapAttributes.Desc.NumDescriptors);
+
+	auto pDevice = CIgniter::get()->fetchDevice();
+	CD3DX12_CPU_DESCRIPTOR_HANDLE Handle(m_DSVDescriptorHeapAttributes.CPUHandle);
+
+	for (auto& DepthStencil : vDepthStencils)
+	{
+		pDevice->CreateDepthStencilView(DepthStencil.pResource, &DepthStencil.Desc, Handle);
+		Handle.Offset(1, m_DSVDescriptorHeapAttributes.DescriptorSize);
+	}
+}
+
+IDxcBlob* CApplication::compileShaderLibrary(const std::wstring& vFilePath, const std::wstring& vTarget)
+{
+	// TODO: pointer not released
+	debug::check(DxcDllHelper.Initialize());
+	
+	IDxcCompiler* pCompiler;
+	IDxcLibrary* pLibrary;
+	debug::check(DxcDllHelper.CreateInstance(CLSID_DxcCompiler, &pCompiler));
+	debug::check(DxcDllHelper.CreateInstance(CLSID_DxcLibrary, &pLibrary));
+
+	std::ifstream ShaderFile(vFilePath.c_str());
+	std::stringstream StrStream;
+	StrStream << ShaderFile.rdbuf();
+	std::string Shader = StrStream.str();
+
+	IDxcBlobEncoding* pTextBlob;
+	debug::check(pLibrary->CreateBlobWithEncodingFromPinned((LPBYTE)Shader.c_str(), (UINT32)Shader.size(), 0, &pTextBlob));
+
+	IDxcOperationResult* pResult;
+	// TODO: other arguments may used in shader too
+	debug::check(pCompiler->Compile(pTextBlob, vFilePath.c_str(), L"", vTarget.c_str(), nullptr, 0, nullptr, 0, nullptr, &pResult));
+	
+	HResult ResultCode;
+	debug::check(pResult->GetStatus(&ResultCode));
+	if (FAILED(ResultCode))
+	{
+		IDxcBlobEncoding* pError;
+		debug::check(pResult->GetErrorBuffer(&pError));
+		std::string log = convertBlobToString(pError);
+		logger::error(log);
+	}
+
+	IDxcBlob* pBlob;
+	debug::check(pResult->GetResult(&pBlob));
+	return pBlob;
+}
+
+
+template<class BlotType>
+std::string convertBlobToString(BlotType* pBlob)
+{
+	std::vector<char> infoLog(pBlob->GetBufferSize() + 1);
+	memcpy(infoLog.data(), pBlob->GetBufferPointer(), pBlob->GetBufferSize());
+	infoLog[pBlob->GetBufferSize()] = 0;
+	return std::string(infoLog.data());
 }

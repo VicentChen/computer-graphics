@@ -16,6 +16,12 @@
     <Filter Include="Shader Files">
       <UniqueIdentifier>{f7cb0296-8086-4fc4-93f5-68a9581b805f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Examples">
+      <UniqueIdentifier>{edd323c2-97f8-45b4-99ac-8b6f0a0f0407}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Externals">
+      <UniqueIdentifier>{82627594-de36-4034-a90a-41d678fe469a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -33,13 +39,22 @@
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SpinningCube.cpp">
+    <ClCompile Include="RayTracingTriangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SpinningTexturePlane.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Examples</Filter>
     </ClCompile>
     <ClCompile Include="ShadowTexturePlane.cpp">
+      <Filter>Examples</Filter>
+    </ClCompile>
+    <ClCompile Include="SpinningCube.cpp">
+      <Filter>Examples</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTracing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,22 +68,34 @@
     <ClInclude Include="Igniter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CommandQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpinningCube.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SpinningTexturePlane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image.h">
+    <ClInclude Include="RayTracingTriangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ShadowTexturePlane.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="SpinningCube.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="SpinningTexturePlane.h">
+      <Filter>Examples</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="dxcapi.use.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,6 +116,9 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="ShadowTexturePlanePS.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="RayTracingTriangle.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>

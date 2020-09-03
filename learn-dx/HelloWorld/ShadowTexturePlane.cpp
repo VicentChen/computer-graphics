@@ -47,13 +47,125 @@ static WORD Indicies[36] =
 	//4, 0, 3, 4, 3, 7
 };
 
-void CShadowTexturePlane::start()
+void CShadowTexturePlane::update()
 {
-	createDescriptorHeap(0, 4, 0, 0, 2);
+	static UINT64 FrameCount = 0;
+	FrameCount++;
+
+	double Angle = FrameCount / 1000.0f; // 9000 frames - 90 degree
+	const XMVECTOR RotationAxis = XMVectorSet(0, 0, 1, 0);
+	m_ModelMatrix = XMMatrixRotationAxis(RotationAxis, Angle);
+
+	const XMVECTOR eyePosition = XMVectorSet(0, -5, -5, 1);
+	const XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
+	const XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
+	m_ViewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
+
+	// Update the projection matrix.
+	float aspectRatio = window::Width / static_cast<float>(window::Height);
+	m_ProjectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(m_FoV), aspectRatio, 0.1f, 100.0f);
+}
+
+void CShadowTexturePlane::render()
+{
+	auto pIgniter = CIgniter::get();
+	auto pCommandQueue = pIgniter->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+	auto SwapChain = pIgniter->fetchSwapChain();
+	auto CommandList = pCommandQueue->createCommandList();
+	auto RenderCommandList = pCommandQueue->createCommandList();
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapDepthStencilCpuHandle(m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	ShadowMapDepthStencilCpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV));
 	
+	auto RTV = pIgniter->fetchCurrentRTV();
+	auto DSV = m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	auto BackBuffer = pIgniter->fetchCurrentBackBuffer();
+
+	ID3D12DescriptorHeap* ppHeaps[] = { m_CBVSRVUAVDescriptorHeap.Get() };
+	XMMATRIX MVPMatrix = XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
+	MVPMatrix = XMMatrixMultiply(MVPMatrix, m_ProjectionMatrix);
+	
+	// clear render target
+	{
+		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		CommandList->ResourceBarrier(1, &barrier);
+		CommandList->ClearRenderTargetView(RTV, window::ClearColor, 0, nullptr);
+		CommandList->ClearDepthStencilView(DSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	}
+
+	// shadow pass
+	CommandList->ClearDepthStencilView(ShadowMapDepthStencilCpuHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	CommandList->SetPipelineState(m_ShadowPipelineState.Get());
+	CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
+	CD3DX12_GPU_DESCRIPTOR_HANDLE ShadowMapGpuHandle(m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	ShadowMapGpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapCpuHandle(m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	ShadowMapCpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	D3D12_VIEWPORT ShadowViewport = CD3DX12_VIEWPORT(0.0f, 0.0f, 1024.0f, 1024.0f);
+	
+	CommandList->SetDescriptorHeaps(1, ppHeaps);
+	CommandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &MVPMatrix, 0);
+	
+	CD3DX12_GPU_DESCRIPTOR_HANDLE NullSRVHandle(m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	NullSRVHandle.Offset(2, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	CommandList->SetGraphicsRootDescriptorTable(1, NullSRVHandle);
+	NullSRVHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	CommandList->SetGraphicsRootDescriptorTable(2, NullSRVHandle);
+
+	CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+	CommandList->IASetIndexBuffer(&m_IndexBufferView);
+	CommandList->RSSetViewports(1, &ShadowViewport);
+	CommandList->RSSetScissorRects(1, &m_ScissorRect);
+	CommandList->OMSetRenderTargets(0, nullptr, FALSE, &ShadowMapDepthStencilCpuHandle);
+
+	CommandList->DrawIndexedInstanced(_countof(Indicies), 1, 0, 0, 0);
+	{
+		UINT64 FenceValue = pCommandQueue->executeCommandList(CommandList);
+		pCommandQueue->wait4Fence(FenceValue);
+	}
+	// scene pass
+	{
+		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_ShadowMap.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		RenderCommandList->ResourceBarrier(1, &barrier);
+	}
+		
+	RenderCommandList->SetPipelineState(m_RenderPipelineState.Get());
+	RenderCommandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
+	RenderCommandList->SetDescriptorHeaps(1, ppHeaps);
+	RenderCommandList->SetGraphicsRootDescriptorTable(1, m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	RenderCommandList->SetGraphicsRootDescriptorTable(2, ShadowMapGpuHandle);
+
+	RenderCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	RenderCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+	RenderCommandList->IASetIndexBuffer(&m_IndexBufferView);
+	RenderCommandList->RSSetViewports(1, &m_Viewport);
+	RenderCommandList->RSSetScissorRects(1, &m_ScissorRect);
+	RenderCommandList->OMSetRenderTargets(1, &RTV, FALSE, &DSV);
+
+	RenderCommandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &MVPMatrix, 0);
+	RenderCommandList->DrawIndexedInstanced(_countof(Indicies), 1, 0, 0, 0);
+
+	{
+		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_ShadowMap.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		RenderCommandList->ResourceBarrier(1, &barrier);
+	}
+	
+	// present
+	{
+		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		RenderCommandList->ResourceBarrier(1, &barrier);
+		UINT64 FenceValue = pCommandQueue->executeCommandList(RenderCommandList);
+		debug::check(SwapChain->Present(0, 0));
+		pCommandQueue->wait4Fence(FenceValue);
+	}
+}
+
+void CShadowTexturePlane::_initPipeline()
+{
 	auto Device = CIgniter::get()->fetchDevice();
-	auto CommandQueue = CIgniter::get()->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
-	auto CommandList = CommandQueue->createCommandList();
 
 	D3D12_FEATURE_DATA_ROOT_SIGNATURE FeatureDataRootSignature = { D3D_ROOT_SIGNATURE_VERSION_1_1 };
 	if (FAILED(Device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &FeatureDataRootSignature, sizeof(FeatureDataRootSignature))))
@@ -145,6 +257,17 @@ void CShadowTexturePlane::start()
 
 	D3D12_PIPELINE_STATE_STREAM_DESC ShadowPipelineStateStreamDesc = { sizeof(ShadowPipelineStateStream), &ShadowPipelineStateStream };
 	debug::check(Device->CreatePipelineState(&ShadowPipelineStateStreamDesc, IID_PPV_ARGS(&m_ShadowPipelineState)));
+
+	// Create viewport & scissors
+	m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(window::Width), static_cast<float>(window::Height));
+	m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
+}
+
+void CShadowTexturePlane::_loadModels()
+{
+	auto Device = CIgniter::get()->fetchDevice();
+	auto CommandQueue = CIgniter::get()->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+	auto CommandList = CommandQueue->createCommandList();
 	
 	// Upload vertex buffer
 	UINT64 VertexBufferSize = _countof(Vertices) * sizeof(VertexPosColor);
@@ -173,35 +296,23 @@ void CShadowTexturePlane::start()
 	OptimizedDepthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	OptimizedDepthClearValue.DepthStencil = { 1.0f, 0 };
 	debug::check(Device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, window::Width, window::Height, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL), D3D12_RESOURCE_STATE_DEPTH_WRITE, &OptimizedDepthClearValue, IID_PPV_ARGS(&m_DepthStencilBuffer)));
-	D3D12_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
-	DepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	DepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	DepthStencilViewDesc.Texture2D.MipSlice = 0;
-	DepthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-	createDepthStencilDescriptor(0, DepthStencilViewDesc, m_DepthStencilBuffer.Get());
 
 	// Create texture
 	SCPUTexture CPUTexture;
 	CPUTexture.pData = stbi_load("dog.png", &CPUTexture.Width, &CPUTexture.Height, &CPUTexture.Channel, 0);
-
+	D3D12_SUBRESOURCE_DATA TextureData = { CPUTexture.pData, CPUTexture.Width * CPUTexture.Channel, CPUTexture.Width * CPUTexture.Channel * CPUTexture.Height };
 	CD3DX12_RESOURCE_DESC TextureDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, CPUTexture.Width, CPUTexture.Height, 1, 1);
+
 	debug::check(Device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &TextureDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_Texture)));
 
 	ComPtr<ID3D12Resource> TextureIntermediateBuffer;
 	const UINT64 UploadBufferSize = GetRequiredIntermediateSize(m_Texture.Get(), 0, 1);
 	debug::check(Device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE, &CD3DX12_RESOURCE_DESC::Buffer(UploadBufferSize), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&TextureIntermediateBuffer)));
 
-	D3D12_SUBRESOURCE_DATA TextureData = { CPUTexture.pData, CPUTexture.Width * CPUTexture.Channel, CPUTexture.Width * CPUTexture.Channel * CPUTexture.Height };
 	UpdateSubresources(CommandList.Get(), m_Texture.Get(), TextureIntermediateBuffer.Get(), 0, 0, 1, &TextureData);
+
 	CD3DX12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	CommandList->ResourceBarrier(1, &Barrier);
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-	SRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	SRVDesc.Format = TextureDesc.Format;
-	SRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	SRVDesc.Texture2D.MipLevels = 1;
-	createShaderResourceDescriptor(0, SRVDesc, m_Texture.Get());
 
 	// Create shadow map
 	CD3DX12_RESOURCE_DESC ShadowMapDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_TYPELESS, 1024, 1024, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -211,158 +322,60 @@ void CShadowTexturePlane::start()
 	ShadowMapClearValue.DepthStencil.Stencil = 0;
 	debug::check(Device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &ShadowMapDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &ShadowMapClearValue, IID_PPV_ARGS(&m_ShadowMap)));
 
-	D3D12_DEPTH_STENCIL_VIEW_DESC ShadowMapDepthStencilViewDesc = {};
-	ShadowMapDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	ShadowMapDepthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	ShadowMapDepthStencilViewDesc.Texture2D.MipSlice = 0;
-	createDepthStencilDescriptor(1, ShadowMapDepthStencilViewDesc, m_ShadowMap.Get());
-	
-	D3D12_SHADER_RESOURCE_VIEW_DESC ShadowMapSRVDesc = {};
-	ShadowMapSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	ShadowMapSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	ShadowMapSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	ShadowMapSRVDesc.Texture2D.MipLevels = 1;
-	createShaderResourceDescriptor(1, ShadowMapSRVDesc, m_ShadowMap.Get());
-
-	// Null srv to make DX12 happy
-	D3D12_SHADER_RESOURCE_VIEW_DESC NullSRVDesc = {};
-	NullSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	NullSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	NullSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	NullSRVDesc.Texture2D.MipLevels = 1;
-	NullSRVDesc.Texture2D.MostDetailedMip = 0;
-	NullSRVDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	createShaderResourceDescriptor(2, NullSRVDesc, nullptr);
-	createShaderResourceDescriptor(3, NullSRVDesc, nullptr);
-	
-	// Create viewport & scissors
-	m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(window::Width), static_cast<float>(window::Height));
-	m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
-
-	// Create
 	auto FenceValue = CommandQueue->executeCommandList(CommandList);
 	CommandQueue->wait4Fence(FenceValue);
 	CommandQueue->Flush();
-
+	
 	stbi_image_free(CPUTexture.pData);
 }
 
-void CShadowTexturePlane::update()
+void CShadowTexturePlane::_describeAssets()
 {
-	static UINT64 FrameCount = 0;
-	FrameCount++;
-
-	double Angle = FrameCount / 1000.0f; // 9000 frames - 90 degree
-	const XMVECTOR RotationAxis = XMVectorSet(0, 0, 1, 0);
-	m_ModelMatrix = XMMatrixRotationAxis(RotationAxis, Angle);
-
-	const XMVECTOR eyePosition = XMVectorSet(0, -5, -5, 1);
-	const XMVECTOR focusPoint = XMVectorSet(0, 0, 0, 1);
-	const XMVECTOR upDirection = XMVectorSet(0, 1, 0, 0);
-	m_ViewMatrix = XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
-
-	// Update the projection matrix.
-	float aspectRatio = window::Width / static_cast<float>(window::Height);
-	m_ProjectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(m_FoV), aspectRatio, 0.1f, 100.0f);
-}
-
-void CShadowTexturePlane::render()
-{
-	auto pIgniter = CIgniter::get();
-	auto pCommandQueue = pIgniter->fetchCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
-	auto SwapChain = pIgniter->fetchSwapChain();
-	auto CommandList = pCommandQueue->createCommandList();
-	auto RenderCommandList = pCommandQueue->createCommandList();
-
-	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapDepthStencilCpuHandle(m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	ShadowMapDepthStencilCpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV));
-	
-	auto RTV = pIgniter->fetchCurrentRTV();
-	auto DSV = m_DSVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	auto BackBuffer = pIgniter->fetchCurrentBackBuffer();
-
-	ID3D12DescriptorHeap* ppHeaps[] = { m_CBVSRVUAVDescriptorHeap.Get() };
-	XMMATRIX MVPMatrix = XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
-	MVPMatrix = XMMatrixMultiply(MVPMatrix, m_ProjectionMatrix);
-	
-	// clear render target
+	std::vector<dx::SDepthStencil> DepthStencils(2);
 	{
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		CommandList->ResourceBarrier(1, &barrier);
-		CommandList->ClearRenderTargetView(RTV, window::ClearColor, 0, nullptr);
-		CommandList->ClearDepthStencilView(DSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-		CommandList->ClearDepthStencilView(ShadowMapDepthStencilCpuHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		DepthStencils[0].pResource = m_DepthStencilBuffer.Get();
+		DepthStencils[0].Desc.Format = DXGI_FORMAT_D32_FLOAT;
+		DepthStencils[0].Desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		DepthStencils[0].Desc.Flags = D3D12_DSV_FLAG_NONE;
+		DepthStencils[0].Desc.Texture2D.MipSlice = 0;
+	}
+	{
+		DepthStencils[1].pResource = m_ShadowMap.Get();
+		DepthStencils[1].Desc.Format = DXGI_FORMAT_D32_FLOAT;
+		DepthStencils[1].Desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		DepthStencils[1].Desc.Flags = D3D12_DSV_FLAG_NONE;
+		DepthStencils[1].Desc.Texture2D.MipSlice = 0;
 	}
 
-	// shadow pass
-	CommandList->SetPipelineState(m_ShadowPipelineState.Get());
-	CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
-
-	CD3DX12_GPU_DESCRIPTOR_HANDLE ShadowMapGpuHandle(m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	ShadowMapGpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	CD3DX12_CPU_DESCRIPTOR_HANDLE ShadowMapCpuHandle(m_CBVSRVUAVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	ShadowMapCpuHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	D3D12_VIEWPORT ShadowViewport = CD3DX12_VIEWPORT(0.0f, 0.0f, 1024.0f, 1024.0f);
-	
-	CommandList->SetDescriptorHeaps(1, ppHeaps);
-	CommandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &MVPMatrix, 0);
-	
-	CD3DX12_GPU_DESCRIPTOR_HANDLE NullSRVHandle(m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	NullSRVHandle.Offset(2, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	CommandList->SetGraphicsRootDescriptorTable(1, NullSRVHandle);
-	NullSRVHandle.Offset(1, pIgniter->getDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	CommandList->SetGraphicsRootDescriptorTable(2, NullSRVHandle);
-
-	CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-	CommandList->IASetIndexBuffer(&m_IndexBufferView);
-	CommandList->RSSetViewports(1, &ShadowViewport);
-	CommandList->RSSetScissorRects(1, &m_ScissorRect);
-	CommandList->OMSetRenderTargets(0, nullptr, FALSE, &ShadowMapDepthStencilCpuHandle);
-
-	CommandList->DrawIndexedInstanced(_countof(Indicies), 1, 0, 0, 0);
+	std::vector<dx::SShaderResource> ShaderResources(4);
 	{
-		UINT64 FenceValue = pCommandQueue->executeCommandList(CommandList);
-		pCommandQueue->wait4Fence(FenceValue);
+		ShaderResources[0].pResource = m_Texture.Get();
+		ShaderResources[0].Desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		ShaderResources[0].Desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		ShaderResources[0].Desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		ShaderResources[0].Desc.Texture2D.MipLevels = 1;
 	}
-	// scene pass
 	{
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_ShadowMap.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-		RenderCommandList->ResourceBarrier(1, &barrier);
+		ShaderResources[1].pResource = m_ShadowMap.Get();
+		ShaderResources[1].Desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		ShaderResources[1].Desc.Format = DXGI_FORMAT_R32_FLOAT;
+		ShaderResources[1].Desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		ShaderResources[1].Desc.Texture2D.MipLevels = 1;
 	}
-		
-	RenderCommandList->SetPipelineState(m_RenderPipelineState.Get());
-	RenderCommandList->SetGraphicsRootSignature(m_RootSignature.Get());
-
-	RenderCommandList->SetDescriptorHeaps(1, ppHeaps);
-	RenderCommandList->SetGraphicsRootDescriptorTable(1, m_CBVSRVUAVDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
-	RenderCommandList->SetGraphicsRootDescriptorTable(2, ShadowMapGpuHandle);
-
-	RenderCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	RenderCommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-	RenderCommandList->IASetIndexBuffer(&m_IndexBufferView);
-	RenderCommandList->RSSetViewports(1, &m_Viewport);
-	RenderCommandList->RSSetScissorRects(1, &m_ScissorRect);
-	RenderCommandList->OMSetRenderTargets(1, &RTV, FALSE, &DSV);
-
-	RenderCommandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / 4, &MVPMatrix, 0);
-	RenderCommandList->DrawIndexedInstanced(_countof(Indicies), 1, 0, 0, 0);
-
 	{
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_ShadowMap.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		RenderCommandList->ResourceBarrier(1, &barrier);
+		ShaderResources[2].pResource = nullptr;
+		ShaderResources[2].Desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		ShaderResources[2].Desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		ShaderResources[2].Desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		ShaderResources[2].Desc.Texture2D.MipLevels = 1;
+		ShaderResources[2].Desc.Texture2D.MostDetailedMip = 0;
+		ShaderResources[2].Desc.Texture2D.ResourceMinLODClamp = 0.0f;
 	}
-	
-	// present
 	{
-		CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(BackBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		RenderCommandList->ResourceBarrier(1, &barrier);
-		UINT64 FenceValue = pCommandQueue->executeCommandList(RenderCommandList);
-		debug::check(SwapChain->Present(0, 0));
-		pCommandQueue->wait4Fence(FenceValue);
+		ShaderResources[3] = ShaderResources[2];
 	}
-}
 
-void CShadowTexturePlane::shutdown()
-{
+	createDescriptorHeap(0, ShaderResources.size(), 0, 0, DepthStencils.size());
+	createDepthStencilDescriptors(DepthStencils);
+	createShaderResourceDescriptors(ShaderResources);
 }
