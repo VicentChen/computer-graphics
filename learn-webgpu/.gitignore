@@ -1,0 +1,6 @@
+Build/*
+cmake-build-debug/*
+glfw/
+webgpu/*
+glfw3webgpu/*
+.idea/*

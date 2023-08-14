@@ -3,3 +3,5 @@ proving-ground/
 
 ## Ignore files genereated by VSCode
 .vscode/
+
+.DS_Store
